@@ -8,23 +8,23 @@ import { FaPlusCircle, FaMinusCircle } from "react-icons/fa";
 import displayINRCurrency from "../helpers/displayCurrency";
 import { MdDelete } from "react-icons/md";
 import { toast } from "react-toastify";
+import { loadStripe } from "@stripe/stripe-js";
 
-import {loadStripe} from '@stripe/stripe-js';
-
-const Cart = () => {
+const Cart = () =>{ 
   const user = useSelector((state) => state?.user?.user);
   const { cartCount, countCartProducts } = useCart();
   const [cartData, setCartData] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  // Generating array of null values based on cartCount
-  const cartLoadingList = Array.from(
-    { length: cartCount },
-    (_, index) => index
-  );
+  // ✅ COD FORM STATE
+  const [showCODForm, setShowCODForm] = useState(false);
+  const [shippingData, setShippingData] = useState({
+    fullName: "",
+    address: "",
+    phone: "",
+  });
 
   const fetchCartData = async () => {
-    // setLoading(true);
     const apiResponse = await fetch(
       `${SummaryApi.countCart.url}/${user?._id}`,
       {
@@ -36,232 +36,295 @@ const Cart = () => {
       }
     );
 
-    // setLoading(false);
-
     const apiResponseData = await apiResponse.json();
-    // console.log(apiResponseData.data)
     if (apiResponseData.success) {
       setCartData(apiResponseData.data);
     }
   };
 
-  const handleLoading = async () => {
-    await fetchCartData();
-  };
-
   useEffect(() => {
-    setLoading(true);
-    handleLoading();
-    setLoading(false);
+    if (user?._id) {
+      setLoading(true);
+      fetchCartData();
+      setLoading(false);
+    }
   }, [user?._id]);
 
+  // ✅ UPDATE QUANTITY
   const updateQuantity = async (productId, qty, increase = true) => {
     const newQty = increase ? qty + 1 : qty - 1;
-
-    // console.log("product Id: ",productId)
-
     if (newQty < 1) return;
 
-    const apiResponse = await fetch(SummaryApi.updateProductQuantity.url, {
+    await fetch(SummaryApi.updateProductQuantity.url, {
       method: SummaryApi.updateProductQuantity.method,
       credentials: "include",
-      headers: {
-        "content-type": "application/json",
-      },
-      body: JSON.stringify({
-        productId,
-        quantity: newQty,
-      }),
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ productId, quantity: newQty }),
     });
 
-    const apiData = await apiResponse.json();
-
-    if (apiData.success) {
-      fetchCartData();
-    }
+    fetchCartData();
   };
 
-  //Delete Cart Product Function
+  // ✅ DELETE PRODUCT
   const deletedProduct = async (id) => {
-    console.log(id);
     const apiResponse = await fetch(SummaryApi.deleteCartProduct.url, {
       method: SummaryApi.deleteCartProduct.method,
       credentials: "include",
-      headers: {
-        "content-type": "application/json",
-      },
-      body: JSON.stringify({
-        cartProductId: id,
-      }),
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ cartProductId: id }),
     });
 
     const apiData = await apiResponse.json();
 
     if (apiData.success) {
       toast.success(apiData.message);
-      console.log(apiData.data);
       fetchCartData();
-      setCartData((prevCartData) =>
-        prevCartData.filter((product) => product._id !== id)
-      );
       countCartProducts();
     }
   };
 
-  //Total Quantity
   const totalQty = cartData.reduce(
-    (previousQty, currentQty) => previousQty + currentQty.quantity,
+    (prev, curr) => prev + curr.quantity,
     0
   );
 
   const totalPrice = cartData.reduce(
-    (previousValue, currentValue) =>
-      previousValue +
-      currentValue?.quantity * currentValue?.productId?.sellingPrice,
+    (prev, curr) =>
+      prev + curr.quantity * curr?.productId?.sellingPrice,
     0
   );
 
+  // ✅ STRIPE PAYMENT
   const handlePayment = async () => {
-    console.log(process.env.REACT_APP_STRIPE_PUBLIC_KEY)
-    const stripePromise = await loadStripe(process.env.REACT_APP_STRIPE_PUBLIC_KEY);
+    const stripePromise = await loadStripe(
+      process.env.REACT_APP_STRIPE_PUBLIC_KEY
+    );
+
     const response = await fetch(SummaryApi.checkout.url, {
       method: SummaryApi.checkout.method,
       credentials: "include",
-      headers: {
-        "content-type": "application/json",
-      },
-      body: JSON.stringify({
-        cartItems: cartData,
-      }),
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ cartItems: cartData }),
     });
 
     const apiData = await response.json();
-    if(apiData?.id){
-      // alert("Jii")
-      stripePromise.redirectToCheckout({sessionId : apiData?.id})
+
+    if (apiData?.id) {
+      stripePromise.redirectToCheckout({ sessionId: apiData.id });
+    } else {
+      toast.error("Payment failed");
     }
-    console.log("Payment Response", apiData);
   };
 
-  return (
-    <div className="container ms-auto p-4">
-      <p className="w-fit px-4 py-2 bg-white rounded text-slate-700 font-bold text-lg">
-        My Cart
-      </p>
-      {cartData.length === 0 && !loading && (
-        <div className="flex items-center flex-col ">
-          <img src={cartImg} className="mix-blend-multiply mt-2 rounded " />
-          <p className="lg:-mt-8 text-slate-500 font-semibold text-center">
-            Looks like you have not added anything to your cart. Go ahead and
-            explore top products.
+  // ✅ COD ORDER
+  const handleCODOrder = async () => {
+  if (!shippingData.fullName || !shippingData.address || !shippingData.phone) {
+    toast.error("Please fill all fields");
+    return;
+  }
+
+  const payload = {
+    cartItems: cartData,
+    shippingDetails: shippingData,
+    userId: user?._id // <--- add this
+  };
+
+  const response = await fetch(SummaryApi.codOrder.url, {
+    method: SummaryApi.codOrder.method,
+    credentials: "include",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+
+  const apiData = await response.json();
+
+  if (apiData.success) {
+    toast.success("Order placed successfully (COD)");
+    setShowCODForm(false);
+    setShippingData({ fullName: "", address: "", phone: "" });
+    fetchCartData();
+  } else {
+    toast.error(apiData.message);
+  }
+};
+
+ return (
+  <div className="min-h-screen bg-gray-50 py-10 px-4">
+    <div className="max-w-7xl mx-auto">
+
+      <h2 className="text-3xl font-bold mb-8 text-gray-800">
+        🛒 My Shopping Cart
+      </h2>
+
+      {cartData.length === 0 ? (
+        <div className="bg-white shadow-xl rounded-2xl p-10 text-center">
+          <img src={cartImg} className="mx-auto w-48 mb-6" />
+          <p className="text-gray-500 text-lg mb-4">
+            Your cart is empty
           </p>
-          <Link to={"/"} className="mt-5">
-            <button className="bg-blue-600 rounded text-white font-semibold w-64 mx-auto h-8">
-              Continue Shopping
-            </button>
+          <Link
+            to="/"
+            className="bg-blue-600 text-white px-6 py-2 rounded-lg shadow hover:bg-blue-700 transition"
+          >
+            Continue Shopping
           </Link>
         </div>
-      )}
-      <div className="flex flex-col lg:flex-row gap-8 lg:justify-between lg:px-8">
-        {/** Cart View When cart has data */}
-        <div className="w-full max-w-3xl p-4">
-          {loading
-            ? cartLoadingList.map((el) => (
-                <div
-                  className="w-full bg-slate-200 h-32 p-1 my-2 rounded border border-slate-300 animate-pulse"
-                  key={el}
-                ></div>
-              ))
-            : cartData.map((product) => (
-                <div
-                  className="w-full bg-slate-100 h-32 my-2 rounded border border-slate-300 grid grid-cols-[128px_1fr]"
-                  key={product?._id + "Cart Product"}
-                >
-                  <div className="w-32 h-32 bg-slate-200 rounded">
-                    <img
-                      src={product?.productId?.productImage[0]}
-                      className="w-full h-full object-scale-down mix-blend-multiply"
-                    />
-                  </div>
-                  <div className="px-4 py-2 relative">
-                    {/**Delete button to delete the product from cart */}
-                    <div
-                      className="absolute right-0 bottom-1 p-2 rounded-full text-red-600 hover:bg-red-600 hover:text-white cursor-pointer"
-                      onClick={() => deletedProduct(product?._id)}
-                    >
-                      <MdDelete className="text-2xl" />
-                    </div>
-                    <h2 className="font-medium lg:text-lg text-ellipsis line-clamp-1">
-                      {product?.productId?.productName}
-                    </h2>
-                    <p className="capitalize text-slate-500">
-                      {product?.productId?.category}
-                    </p>
-                    <div className="flex items-center justify-between">
-                      <p className="font-medium text-red-400 text-lg">
-                        {displayINRCurrency(product?.productId?.sellingPrice)}
-                      </p>
-                      <p className="font-medium text-slate-600 text-lg">
-                        {displayINRCurrency(
-                          product?.quantity * product?.productId?.sellingPrice
-                        )}
-                      </p>
-                    </div>
-                    <div className="flex items-center gap-2 mt-2">
-                      <button
-                        className="text-slate-600 rounded-full hover:text-slate-800 border border-red-600 hover:border-red-800 text-lg"
-                        onClick={() =>
-                          updateQuantity(product?._id, product?.quantity, false)
-                        }
-                      >
-                        <FaMinusCircle />
-                      </button>
-                      <span>{product?.quantity}</span>
-                      <button
-                        className="text-slate-600 rounded-full hover:text-slate-800 border border-red-600 hover:border-red-800 text-lg"
-                        onClick={() =>
-                          updateQuantity(product?._id, product.quantity, true)
-                        }
-                      >
-                        <FaPlusCircle />
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              ))}
-        </div>
+      ) : (
+        <div className="grid lg:grid-cols-3 gap-10">
 
-        {/** Cart View Summary When cart has data */}
-        <div className="mt-5 lg:mt-2 w-full max-w-sm">
-          {loading ? (
-            <div className="h-36 bg-slate-200 rounded animate-pulse border border-slate-300"></div>
-          ) : (
-            cartCount !== 0 && (
-              <div className="h-40 bg-slate-200 rounded border border-slate-300">
-                <h2 className="text-white bg-slate-600 text-center font-semibold text-4xl p-3 rounded-t">
-                  Cart Summary
-                </h2>
-                <div className="flex items-center justify-between gap-2 px-4 font-semibold text-lg text-slate-600">
-                  <p className="">Quantity : </p>
-                  <p className="">{totalQty}</p>
+          {/* LEFT SIDE - CART ITEMS */}
+          <div className="lg:col-span-2 space-y-6">
+            {cartData.map((product) => (
+              <div
+                key={product._id}
+                className="bg-white rounded-2xl shadow-md hover:shadow-xl transition p-5 flex gap-6 items-center"
+              >
+                <img
+                  src={product?.productId?.productImage[0]}
+                  className="w-28 h-28 object-contain"
+                />
+
+                <div className="flex-1">
+                  <h3 className="text-lg font-semibold text-gray-800">
+                    {product?.productId?.productName}
+                  </h3>
+
+                  <p className="text-blue-600 font-bold mt-2">
+                    {displayINRCurrency(
+                      product?.productId?.sellingPrice
+                    )}
+                  </p>
+
+                  <div className="flex items-center gap-4 mt-4">
+                    <button
+                      className="bg-gray-200 p-2 rounded-full hover:bg-gray-300"
+                      onClick={() =>
+                        updateQuantity(
+                          product._id,
+                          product.quantity,
+                          false
+                        )
+                      }
+                    >
+                      <FaMinusCircle />
+                    </button>
+
+                    <span className="text-lg font-semibold">
+                      {product.quantity}
+                    </span>
+
+                    <button
+                      className="bg-gray-200 p-2 rounded-full hover:bg-gray-300"
+                      onClick={() =>
+                        updateQuantity(
+                          product._id,
+                          product.quantity,
+                          true
+                        )
+                      }
+                    >
+                      <FaPlusCircle />
+                    </button>
+                  </div>
                 </div>
-                <div className="flex items-center justify-between gap-2 px-4 font-semibold text-lg text-slate-600">
-                  <p>Total Amount :</p>
-                  <p>{displayINRCurrency(totalPrice)}</p>
-                </div>
+
                 <button
-                  className="bg-blue-600 p-2 w-full text-white bottom-0 text-2xl mt-2 rounded-b "
-                  onClick={handlePayment}
+                  className="text-red-500 hover:text-red-700 text-2xl"
+                  onClick={() => deletedProduct(product._id)}
                 >
-                  Checkout
+                  <MdDelete />
                 </button>
               </div>
-            )
-          )}
+            ))}
+          </div>
+
+          {/* RIGHT SIDE - SUMMARY */}
+          <div className="bg-white shadow-xl rounded-2xl p-6 h-fit sticky top-10">
+
+            <h3 className="text-xl font-semibold mb-6 text-gray-800">
+              Order Summary
+            </h3>
+
+            <div className="flex justify-between mb-3 text-gray-600">
+              <span>Total Items</span>
+              <span>{totalQty}</span>
+            </div>
+
+            <div className="flex justify-between mb-6 text-lg font-bold text-gray-800">
+              <span>Total Price</span>
+              <span>{displayINRCurrency(totalPrice)}</span>
+            </div>
+
+            <button
+              className="w-full bg-gradient-to-r from-blue-500 to-blue-700 text-white py-3 rounded-xl font-semibold shadow hover:scale-105 transition"
+              onClick={handlePayment}
+            >
+              💳 Pay Online
+            </button>
+
+            <button
+              className="w-full mt-3 bg-gradient-to-r from-green-500 to-green-700 text-white py-3 rounded-xl font-semibold shadow hover:scale-105 transition"
+              onClick={() => setShowCODForm(true)}
+            >
+              🚚 Cash On Delivery
+            </button>
+
+            {showCODForm && (
+              <div className="mt-6 bg-gray-50 p-4 rounded-xl border animate-fadeIn">
+                <h4 className="font-semibold mb-4 text-gray-700">
+                  Shipping Details
+                </h4>
+
+                <input
+                  className="w-full border p-2 mb-3 rounded-lg focus:ring-2 focus:ring-blue-400 outline-none"
+                  placeholder="Full Name"
+                  value={shippingData.fullName}
+                  onChange={(e) =>
+                    setShippingData({
+                      ...shippingData,
+                      fullName: e.target.value,
+                    })
+                  }
+                />
+
+                <input
+                  className="w-full border p-2 mb-3 rounded-lg focus:ring-2 focus:ring-blue-400 outline-none"
+                  placeholder="Address"
+                  value={shippingData.address}
+                  onChange={(e) =>
+                    setShippingData({
+                      ...shippingData,
+                      address: e.target.value,
+                    })
+                  }
+                />
+
+                <input
+                  className="w-full border p-2 mb-4 rounded-lg focus:ring-2 focus:ring-blue-400 outline-none"
+                  placeholder="Mobile Number"
+                  value={shippingData.phone}
+                  onChange={(e) =>
+                    setShippingData({
+                      ...shippingData,
+                      phone: e.target.value,
+                    })
+                  }
+                />
+
+                <button
+                  className="w-full bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 transition"
+                  onClick={handleCODOrder}
+                >
+                  Confirm Order
+                </button>
+              </div>
+            )}
+          </div>
         </div>
-      </div>
+      )}
     </div>
-  );
+  </div>
+);
 };
 
 export default Cart;

@@ -119,6 +119,10 @@ const SummaryApi = {
   getOrderData : {
     url : `${backendDomain}/api/get-order-details`,
     method : "get"
+  },
+  codOrder: {
+    url: `${backendDomain}/api/cod-order`,
+    method: "post"
   }
 }
 
