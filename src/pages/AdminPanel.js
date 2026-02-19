@@ -50,6 +50,12 @@ const AdminPanel = () => {
             >
               Products
             </Link>
+            <Link
+              to="all-orders"
+              className="p-1 text-2xl font-bold flex items-center justify-center"
+            >
+              All-Orders
+            </Link>
             {/* <Link
               to="add-products"
               className="p-1 text-2xl font-bold flex items-center justify-center"

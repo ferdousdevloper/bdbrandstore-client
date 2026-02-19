@@ -20,6 +20,7 @@ import ResetPassword from "../pages/ResetPassword";
 import Success from "../pages/Success";
 import Cancel from "../pages/Cancel";
 import Order from "../pages/Order";
+import AdminOrders from "../pages/AdminOrders";
 
 const router = createBrowserRouter([
   {
@@ -43,12 +44,12 @@ const router = createBrowserRouter([
         element: <ForgotPassword />,
       },
       {
-        path : "verify-otp",
-        element : <VerifyOtp />
+        path: "verify-otp",
+        element: <VerifyOtp />,
       },
       {
-        path : "reset-password",
-        element: <ResetPassword/>
+        path: "reset-password",
+        element: <ResetPassword />,
       },
       {
         path: "category-product",
@@ -56,20 +57,20 @@ const router = createBrowserRouter([
       },
       {
         path: "product/:id",
-        element: <ProductDetail/>
+        element: <ProductDetail />,
       },
-      
+
       {
-        path:"search",
-        element : <SearchProduct/>
+        path: "search",
+        element: <SearchProduct />,
       },
       {
-        path:"success",
-        element:<Success/>
+        path: "success",
+        element: <Success />,
       },
       {
         path: "cancel",
-        element : <Cancel/>
+        element: <Cancel />,
       },
       {
         path: "admin-panel",
@@ -83,7 +84,10 @@ const router = createBrowserRouter([
             path: "all-products",
             element: <Products />,
           },
-          
+          {
+            path: "all-orders",
+            element: <AdminOrders />,
+          },
         ],
       },
       {
@@ -104,7 +108,7 @@ const router = createBrowserRouter([
           },
           {
             path: "cart",
-            element: <Cart/>
+            element: <Cart />,
           },
         ],
       },
