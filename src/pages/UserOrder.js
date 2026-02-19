@@ -8,26 +8,33 @@ import displayINRCurrency from "../helpers/displayCurrency";
 const UserOrder = () => {
   const [orderData, setOrderData] = useState([]);
 
-  const fetchData = async () => {
-    const response = await fetch(SummaryApi.getOrderData.url, {
-      method: SummaryApi.getOrderData.method,
-      credentials: "include",
-    });
+  const fetchOrders = async () => {
+    try {
+      const res = await fetch(SummaryApi.getOrderData.url, {   // ✅ correct API
+        method: SummaryApi.getOrderData.method,
+        credentials: "include",
+      });
 
-    const data = await response.json();
-    if (data.success) {
-      setOrderData(data.data);
+      const data = await res.json();
+
+      if (data.success) {
+        setOrderData(data.data);
+      } else {
+        console.error("Failed to fetch orders:", data.message);
+      }
+    } catch (err) {
+      console.error("Error fetching orders:", err);
     }
   };
 
   useEffect(() => {
-    fetchData();
+    fetchOrders();
   }, []);
 
   return (
     <div className="p-4">
       <h1 className="text-xl font-bold text-slate-800 underline">My Order</h1>
-      {/* For User having order 0 or not ordered yet */}
+
       {orderData.length === 0 && (
         <div className="flex justify-center items-center gap-3 flex-col lg:mt-16 md:mt-24">
           <img
@@ -48,44 +55,42 @@ const UserOrder = () => {
         </div>
       )}
 
-      {/* For user having some ordered data or has ordered something that product */}
       {orderData.map((order, index) => {
         return (
-          <div key={order.useId + index} className=" my-4 p-4">
+          <div key={order.user + index} className=" my-4 p-4">
             <p className="font-semibold text-lg text-slate-600 mb-2">
               {moment(order.createdAt).format("LL")}
             </p>
             <div className="border border-slate-600 rounded">
               <div className="grid gap-1 ">
-                {order.productDetails.map((product, index) => {
-                  return (
-                    <Link
-                      to={`/product/${product?.productId}`}
-                      key={product?.productId + index}
-                      className="flex gap-3 bg-slate-100 m-1 rounded"
-                    >
-                      <div className="w-28 h-28 bg-white rounded-tl-lg rounded-bl-lg overflow-hidden">
-                        <img
-                          src={product.image[0]}
-                          className="w-full h-full object-contain p-1 mix-blend-multiply"
-                        />
+                {order.cartItems.map((product, index) => (
+                  <Link
+                    to={`/product/${product.productId}`}
+                    key={product.productId + index}
+                    className="flex gap-3 bg-slate-100 m-1 rounded"
+                  >
+                    <div className="w-28 h-28 bg-white rounded-tl-lg rounded-bl-lg overflow-hidden">
+                      <img
+                        src={product.image}
+                        className="w-full h-full object-contain p-1 mix-blend-multiply"
+                        alt={product.productName}
+                      />
+                    </div>
+                    <div>
+                      <div className="font-bold text-lg text-ellipsis line-clamp-1 text-slate-800">
+                        {product.productName}
                       </div>
-                      <div>
-                        <div className="font-bold text-lg text-ellipsis line-clamp-1 text-slate-800">
-                          {product.name}
+                      <div className="flex items-center gap-5 mt-1">
+                        <div className="text-lg text-red-500 ">
+                          {displayINRCurrency(product.price)}
                         </div>
-                        <div className="flex items-center gap-5 mt-1">
-                          <div className="text-lg text-red-500 ">
-                            {displayINRCurrency(product.price)}
-                          </div>
-                          <p className="text-lg text-slate-500">
-                            Quantity: {product.quantity}
-                          </p>
-                        </div>
+                        <p className="text-lg text-slate-500">
+                          Quantity: {product.quantity}
+                        </p>
                       </div>
-                    </Link>
-                  );
-                })}
+                    </div>
+                  </Link>
+                ))}
               </div>
               <div className="flex flex-col lg:flex-row gap-10 px-10 p-4">
                 <div>
@@ -94,30 +99,28 @@ const UserOrder = () => {
                   </div>
                   <p className="text-slate-600 font-semibold ml-1">
                     Payment Method:{" "}
-                    {order.paymentDetails.payment_method_type[0]}
+                    {order.paymentMethod || "N/A"}
                   </p>
                   <p className="text-slate-600 font-semibold ml-1">
-                    Payment Status: {order.paymentDetails.payment_status}
+                    Payment Status: {order.paymentDetails?.payment_status || "N/A"}
                   </p>
                 </div>
                 <div>
                   <div className="text-lg text-slate-800 font-bold">
                     Shipping Details:
                   </div>
-                  {order.shipping_options.map((shipping, index) => {
-                    return (
-                      <div
-                        key={shipping.shipping_rate + index}
-                        className="text-slate-600 font-semibold ml-1"
-                      >
-                        Shipping Amount:{" "}
-                        {displayINRCurrency(shipping.shipping_amount / 100)}
-                      </div>
-                    );
-                  })}
+                  <div className="text-slate-600 font-semibold ml-1">
+                    Full Name: {order.shippingDetails?.fullName || "N/A"}
+                  </div>
+                  <div className="text-slate-600 font-semibold ml-1">
+                    Address: {order.shippingDetails?.address || "N/A"}
+                  </div>
+                  <div className="text-slate-600 font-semibold ml-1">
+                    Phone: {order.shippingDetails?.phone || "N/A"}
+                  </div>
                 </div>
                 <div className="text-lg text-slate-800 font-bold">
-                  Total Amount: {displayINRCurrency(order.total_amount)}
+                  Total Amount: {displayINRCurrency(order.totalAmount || 0)}
                 </div>
               </div>
             </div>
