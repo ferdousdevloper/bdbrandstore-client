@@ -120,7 +120,7 @@ const UserOrder = () => {
                   </div>
                 </div>
                 <div className="text-lg text-slate-800 font-bold">
-                  Total Amount: {displayINRCurrency(order.totalAmount || 0)}
+                  Total Amount: {displayINRCurrency(order.total_amount || 0)}
                 </div>
               </div>
             </div>
