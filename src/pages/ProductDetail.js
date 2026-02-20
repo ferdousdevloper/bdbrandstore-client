@@ -2,7 +2,7 @@ import React, { useEffect, useState, useContext } from "react";
 import { useParams } from "react-router-dom";
 import SummaryApi from "../common/API";
 import {FaStar,FaRegStar,FaStarHalfAlt,FaShoppingCart,FaBolt,FaHeart,FaRegHeart,} from "react-icons/fa";
-import displayINRCurrency from "../helpers/displayCurrency";
+import displayBDTCurrency from "../helpers/displayCurrency";
 import VerticalProductCard from "../components/VerticalProductCard";
 import useAddToCart from "../helpers/AddToCart";
 import AddToWishList from "../helpers/AddToWishlist";
@@ -209,9 +209,9 @@ const ProductDetail = () => {
                 <FaRegStar />
               </div>
               <div className="flex gap-4 items-center font-semibold lg:text-3xl text-2xl my-1">
-                <p>{displayINRCurrency(productData.sellingPrice)}</p>
+                <p>{displayBDTCurrency(productData.sellingPrice)}</p>
                 <p className="line-through text-slate-400 rounded w-fit text-sm lg:font-medium lg:text-lg">
-                  {displayINRCurrency(productData.price)}
+                  {displayBDTCurrency(productData.price)}
                 </p>
 
                 {/** Calculate and display discount percentage */}

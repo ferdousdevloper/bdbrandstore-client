@@ -1,12 +1,15 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { Link, Outlet, useNavigate } from "react-router-dom";
-import { FaHeart, FaBars, FaShoppingCart } from "react-icons/fa";
+import {
+  FaHeart,
+  FaBars,
+  FaShoppingCart,
+  FaPowerOff,
+  FaUserCircle,
+} from "react-icons/fa";
 import { RiFolderUploadFill } from "react-icons/ri";
 import { BsPersonCircle } from "react-icons/bs";
-import { FaCircleUser } from "react-icons/fa6";
-import { FaWindowClose } from "react-icons/fa";
-import { FaPowerOff } from "react-icons/fa";
 import SummaryApi from "../common/API";
 import { toast } from "react-toastify";
 import { setUserDetails } from "../store/userSlice";
@@ -15,114 +18,126 @@ const UserPanel = () => {
   const user = useSelector((state) => state?.user?.user);
   const dispatch = useDispatch();
   const navigate = useNavigate();
-
   const [isSidebarVisible, setSidebarVisible] = useState(false);
 
-  const toggleSidebar = () => {
-    setSidebarVisible(!isSidebarVisible);
-  };
+  const toggleSidebar = () => setSidebarVisible(!isSidebarVisible);
 
   const handleLogout = async () => {
     const fetchDate = await fetch(SummaryApi.userLogout.url, {
       method: SummaryApi.userLogout.method,
       credentials: "include",
     });
-
     const data = await fetchDate.json();
 
     if (data.success) {
       toast.success(data.message);
       dispatch(setUserDetails(null));
       navigate("/");
-    }
-
-    if (data.error) {
+    } else {
       toast.error(data.message);
     }
   };
 
   return (
-    <div className="flex sm:flex-row max-h-[calc(100vh-70px)] flex-col p-4 gap-4">
-      <div className="cursor-pointer p-2 md:hidden" onClick={toggleSidebar}>
-        <FaBars />
-      </div>
-      {/* sidebar */}
-      <aside
-        className={`bg-slate-400 min-h-[calc(100vh-160px)] w-full max-w-64 m-4 rounded-lg text-white text-center relative customShadow overflow-y-auto ${
-          isSidebarVisible ? "block" : "hidden"
-        } sm:block`}
-      >
-        <div
-          className="right-1 top-1 cursor-pointer p-1 absolute md:hidden"
-          onClick={toggleSidebar}
-        >
-          <FaWindowClose className="text-xl" />
-        </div>
-        <div className="h-52 flex justify-center items-center flex-col">
-          <div className="text-xl flex justify-center">
-            {user?.profilepic ? (
-              <img
-                src={user?.profilepic}
-                className="w-24 h-24 rounded-full"
-                alt={user?.name}
-              />
-            ) : (
-              <FaCircleUser />
-            )}
-          </div>
-          <h2 className="capitalize font-bold text-3xl">
-            {user?.name ? user?.name : "Admin"}
-          </h2>
-        </div>
+    <div className="flex min-h-[calc(100vh-70px)] bg-gray-50 relative">
 
-        {/* Navigation Link for Admin */}
-        <div className="px-8">
-          <nav className="grid gap-1 text-left">
-            <Link
-              to="my-account"
-              className="p-2 text-2xl font-semibold flex items-center gap-2 text-white hover:text-slate-900"
-            >
-              <BsPersonCircle /> Profile
-            </Link>
-            <Link
-              to="wishlist"
-              className="p-2 text-2xl font-semibold flex items-center gap-2 text-white hover:text-slate-900"
-            >
-              <FaHeart />
-              Wishlist
-            </Link>
-            <Link
-              to="cart"
-              className="p-2 text-2xl font-semibold flex items-center gap-2 text-white hover:text-slate-900"
-            >
-              <FaShoppingCart />
-              Carts
-            </Link>
-            <Link
-              to="my-orders"
-              className="p-2 text-2xl font-semibold flex items-center gap-2 text-white hover:text-slate-900"
-            >
-              <RiFolderUploadFill /> Orders
-            </Link>
-            <Link
-              to="my-orders"
-              className="p-2 text-2xl font-semibold flex items-center gap-2 text-red-500 hover:text-red-900"
-              onClick={handleLogout}
-              // onClick={toggleSidebar}
-            >
-              <FaPowerOff />
-              Sign Out
-            </Link>
-          </nav>
-        </div>
-      </aside>
-      {/* content */}
-      <main
-        className={`bg-slate-200 min-h-[calc(100vh-130px)] sm:max-h-[calc(100vh-210px)] w-full m-4 rounded overflow-y-scroll custom-scrollbar ${
-          isSidebarVisible ? "hidden" : "block"
+      {/* Mobile Toggle */}
+      <div
+        className="absolute top-4 left-4 z-50 md:hidden cursor-pointer text-blue-700"
+        onClick={toggleSidebar}
+      >
+        <FaBars size={24} />
+      </div>
+
+      {/* Overlay (Mobile only) */}
+      {isSidebarVisible && (
+        <div
+          className="fixed inset-0 bg-black/40 z-30 md:hidden"
+          onClick={toggleSidebar}
+        />
+      )}
+
+      {/* Sidebar */}
+      <aside
+        className={`fixed md:static top-0 left-0 h-full md:h-auto w-64 bg-gradient-to-b from-blue-700 via-blue-600 to-blue-500 text-white p-6 shadow-lg z-40 transform transition-transform duration-300 ${
+          isSidebarVisible
+            ? "translate-x-0"
+            : "-translate-x-full md:translate-x-0"
         }`}
       >
-        <Outlet />
+        {/* Close button mobile */}
+        <div
+          className="absolute top-3 right-3 md:hidden cursor-pointer"
+          onClick={toggleSidebar}
+        >
+          ✕
+        </div>
+
+        {/* Profile */}
+        <div className="flex flex-col items-center mb-8 mt-6 md:mt-0">
+          {user?.profilepic ? (
+            <img
+              src={user.profilepic}
+              className="w-24 h-24 rounded-full border-4 border-white shadow-md"
+              alt={user?.name}
+            />
+          ) : (
+            <FaUserCircle size={96} />
+          )}
+          <h2 className="capitalize font-bold text-2xl mt-3">
+            {user?.name || "User"}
+          </h2>
+          <p className="text-gray-200 mt-1 text-sm">{user?.email}</p>
+        </div>
+
+        {/* Navigation */}
+        <nav className="flex flex-col gap-3">
+          <Link
+            to="my-account"
+            onClick={() => setSidebarVisible(false)}
+            className="flex items-center gap-3 px-4 py-2 rounded hover:bg-white/20 font-semibold text-lg transition-colors"
+          >
+            <BsPersonCircle /> Profile
+          </Link>
+
+          <Link
+            to="wishlist"
+            onClick={() => setSidebarVisible(false)}
+            className="flex items-center gap-3 px-4 py-2 rounded hover:bg-white/20 font-semibold text-lg transition-colors"
+          >
+            <FaHeart /> Wishlist
+          </Link>
+
+          <Link
+            to="cart"
+            onClick={() => setSidebarVisible(false)}
+            className="flex items-center gap-3 px-4 py-2 rounded hover:bg-white/20 font-semibold text-lg transition-colors"
+          >
+            <FaShoppingCart /> Cart
+          </Link>
+
+          <Link
+            to="my-orders"
+            onClick={() => setSidebarVisible(false)}
+            className="flex items-center gap-3 px-4 py-2 rounded hover:bg-white/20 font-semibold text-lg transition-colors"
+          >
+            <RiFolderUploadFill /> Orders
+          </Link>
+
+          <button
+            onClick={handleLogout}
+            className="flex items-center gap-3 px-4 py-2 rounded hover:bg-red-600 font-semibold text-lg transition-colors mt-4 w-full"
+          >
+            <FaPowerOff /> Sign Out
+          </button>
+        </nav>
+      </aside>
+
+      {/* Main Content */}
+      <main className="flex-1 p-4 md:p-6">
+        <div className="bg-white rounded-lg shadow-md p-6 min-h-[80vh]">
+          <Outlet />
+        </div>
       </main>
     </div>
   );

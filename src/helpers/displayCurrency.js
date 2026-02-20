@@ -1,11 +1,11 @@
-const displayINRCurrency = (num) =>{
+const displayBDTCurrency = (num) =>{
   const formatter = new Intl.NumberFormat('en-IN',{
     style: "currency",
-    currency: "INR",
+    currency: "BDT",
     maximumFractionDigits : 2
   })
 
   return formatter.format(num)
 }
 
-export default displayINRCurrency
+export default displayBDTCurrency

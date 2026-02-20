@@ -6,6 +6,7 @@ import { Link } from "react-router-dom";
 import { FaEdit } from "react-icons/fa";
 import { MdDelete } from "react-icons/md";
 import RoleChangeModal from "../components/ChangeUserRole";
+import { motion, AnimatePresence } from "framer-motion";
 
 const AllUsers = () => {
   const [allUser, setAllUser] = useState([]);
@@ -15,17 +16,16 @@ const AllUsers = () => {
   const itemsPerPage = 8;
 
   const fetchAllUser = async () => {
-    const fetchData = await fetch(SummaryApi.allUser.url, {
-      method: SummaryApi.allUser.method,
-      credentials: "include",
-    });
-
-    const dataResponse = await fetchData.json();
-    // console.log(dataResponse);
-    if (dataResponse.success) {
-      setAllUser(dataResponse.data);
-    } else {
-      toast.error(dataResponse.message);
+    try {
+      const res = await fetch(SummaryApi.allUser.url, {
+        method: SummaryApi.allUser.method,
+        credentials: "include",
+      });
+      const data = await res.json();
+      if (data.success) setAllUser(data.data);
+      else toast.error(data.message);
+    } catch (err) {
+      toast.error("Failed to fetch users");
     }
   };
 
@@ -44,165 +44,119 @@ const AllUsers = () => {
   };
 
   const handleRoleSubmit = async (userId, role) => {
-    // Make API call to update the role
-    // console.log(newRole)
-    const response = await fetch(`${SummaryApi.updateRole.url}/${userId}`, {
-      method: SummaryApi.updateRole.method,
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ role }),
-    });
-
-    const dataResponse = await response.json();
-    if (dataResponse.success) {
-      toast.success("Role updated successfully");
-      fetchAllUser();
-    } else {
-      toast.error(dataResponse.message);
+    try {
+      const res = await fetch(`${SummaryApi.updateRole.url}/${userId}`, {
+        method: SummaryApi.updateRole.method,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ role }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        toast.success("Role updated successfully");
+        fetchAllUser();
+      } else toast.error(data.message);
+    } catch {
+      toast.error("Failed to update role");
     }
     handleModalClose();
   };
 
   const totalPages = Math.ceil(allUser.length / itemsPerPage);
-
-  const handlePageChange = (pageNumber) => {
-    setCurrentPage(pageNumber);
-  };
-
   const paginatedUsers = allUser.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
 
+  const handlePageChange = (pageNumber) => setCurrentPage(pageNumber);
+
+  // Framer Motion Variants
+  const cardVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { opacity: 1, y: 0 },
+    hover: { scale: 1.05, boxShadow: "0px 10px 20px rgba(0,0,0,0.2)" },
+  };
+
   return (
-    <div>
-      <div className="relative overflow-x-auto shadow-md sm:rounded-lg m-1">
-        <table className="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
-          <thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
-            <tr>
-              <th scope="col" className="p-4">
-                #
-              </th>
-              <th scope="col" className="px-6 py-3">
-                Name
-              </th>
-              <th scope="col" className="px-6 py-3">
-                Role
-              </th>
-              <th scope="col" className="px-6 py-3">
-                Email
-              </th>
-              <th scope="col" className="px-6 py-3">
-                Image
-              </th>
-              <th scope="col" className="px-6 py-3">
-                Created Date
-              </th>
-              <th scope="col" className="px-6 py-3">
-                Action
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {paginatedUsers.map((el, index) => (
-              <tr
-                key={index}
-                className="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600"
-              >
-                <td className="w-4 p-4">
-                  {(currentPage - 1) * itemsPerPage + index + 1}
-                </td>
-                <th
-                  scope="row"
-                  className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white"
-                >
-                  {el?.name}
-                </th>
-                <td className="px-6 py-4">
-                  {el?.role}
-                </td>
-                <td className="px-6 py-4">{el?.email}</td>
-                <td className="px-6 py-4">
-                  <img
-                    src={el?.profilepic}
-                    className="w-8 h-8 rounded-full"
-                    alt={el?.name}
-                  />
-                </td>
-                <td className="px-6 py-4">
-                  {moment(el?.createdAt).format("ll")}
-                </td>
-                <td className="px-6 py-4 flex space-x-4">
-                  <button
-                    onClick={() => handleRoleChange(el)}
-                    className="font-medium text-blue-600 dark:text-blue-500 hover:text-blue-800 dark:hover:text-blue-300 ml-2"
-                  >
-                    <FaEdit className="text-2xl"/>
-                  </button>
-                  <Link
-                    to={""}
-                    className="font-medium text-red-600 dark:text-red-500 hover:text-red-800 dark:hover:text-red-300"
-                  >
-                    <MdDelete className="text-2xl" />
-                  </Link>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-        <nav
-          className="flex items-center flex-column flex-wrap md:flex-row justify-between pt-4"
-          aria-label="Table navigation"
-        >
-          <span className="text-sm font-normal text-gray-500 dark:text-gray-600 mb-4 md:mb-0 block w-full md:inline md:w-auto">
-            Showing{" "}
-            <span className="font-semibold text-gray-900 dark:text-gray-900">
-              {(currentPage - 1) * itemsPerPage + 1}-
-              {Math.min(currentPage * itemsPerPage, allUser.length)}
-            </span>{" "}
-            of{" "}
-            <span className="font-semibold text-gray-900 dark:text-gray-900">
-              {allUser.length}
-            </span>
-          </span>
-          <ul className="inline-flex -space-x-px rtl:space-x-reverse text-sm h-8">
-            {currentPage > 1 && (
-              <li>
+    <div className="p-4 bg-gray-100 min-h-screen">
+      <h1 className="text-2xl font-bold text-gray-800 mb-6">All Users</h1>
+
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <AnimatePresence>
+          {paginatedUsers.map((user, idx) => (
+            <motion.div
+              key={user._id || idx}
+              className="bg-white rounded-xl shadow-lg p-5 flex flex-col items-center text-center"
+              variants={cardVariants}
+              initial="hidden"
+              animate="visible"
+              exit="hidden"
+              whileHover="hover"
+              transition={{ duration: 0.3 }}
+            >
+              <img
+                src={user.profilepic}
+                alt={user.name}
+                className="w-20 h-20 rounded-full border-2 border-blue-300 mb-4"
+              />
+              <h2 className="text-lg font-semibold text-gray-800">{user.name}</h2>
+              <p className="text-sm text-gray-500 mb-1">{user.email}</p>
+              <span className="px-3 py-1 rounded-full bg-blue-100 text-blue-800 text-xs font-medium mb-3">
+                {user.role}
+              </span>
+              <p className="text-gray-400 text-xs mb-3">
+                Joined {moment(user.createdAt).format("LL")}
+              </p>
+              <div className="flex gap-4">
                 <button
-                  onClick={() => handlePageChange(currentPage - 1)}
-                  className="flex items-center justify-center px-3 h-8 ms-0 leading-tight text-gray-500 bg-white border border-gray-300 rounded-s-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
+                  onClick={() => handleRoleChange(user)}
+                  className="bg-blue-500 hover:bg-blue-600 text-white p-2 rounded-lg transition-colors"
                 >
-                  Previous
+                  <FaEdit size={18} />
                 </button>
-              </li>
-            )}
-            {Array.from({ length: totalPages }, (_, index) => (
-              <li key={index}>
-                <button
-                  onClick={() => handlePageChange(index + 1)}
-                  className={`flex items-center justify-center px-3 h-8 leading-tight text-gray-500 bg-white border border-gray-300 hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white ${
-                    currentPage === index + 1 &&
-                    "text-blue-600 border-blue-300 bg-blue-50 hover:bg-blue-100 hover:text-blue-700 dark:border-gray-700 dark:bg-gray-700 dark:text-white"
-                  }`}
+                <Link
+                  to={""}
+                  className="bg-red-500 hover:bg-red-600 text-white p-2 rounded-lg transition-colors"
                 >
-                  {index + 1}
-                </button>
-              </li>
-            ))}
-            {currentPage < totalPages && (
-              <li>
-                <button
-                  onClick={() => handlePageChange(currentPage + 1)}
-                  className="flex items-center justify-center px-3 h-8 leading-tight text-gray-500 bg-white border border-gray-300 rounded-e-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
-                >
-                  Next
-                </button>
-              </li>
-            )}
-          </ul>
-        </nav>
+                  <MdDelete size={18} />
+                </Link>
+              </div>
+            </motion.div>
+          ))}
+        </AnimatePresence>
       </div>
+
+      {/* Pagination */}
+      <div className="flex justify-center items-center mt-6 space-x-2 flex-wrap">
+        <button
+          onClick={() => currentPage > 1 && handlePageChange(currentPage - 1)}
+          className="px-4 py-2 bg-white border rounded-lg shadow hover:bg-gray-50 transition"
+        >
+          Previous
+        </button>
+        {Array.from({ length: totalPages }, (_, idx) => (
+          <button
+            key={idx}
+            onClick={() => handlePageChange(idx + 1)}
+            className={`px-4 py-2 border rounded-lg shadow transition mb-2 ${
+              currentPage === idx + 1
+                ? "bg-blue-500 text-white border-blue-500"
+                : "bg-white text-gray-700 border-gray-300 hover:bg-blue-50 hover:text-blue-600"
+            }`}
+          >
+            {idx + 1}
+          </button>
+        ))}
+        <button
+          onClick={() =>
+            currentPage < totalPages && handlePageChange(currentPage + 1)
+          }
+          className="px-4 py-2 bg-white border rounded-lg shadow hover:bg-gray-50 transition"
+        >
+          Next
+        </button>
+      </div>
+
+      {/* Role Change Modal */}
       {selectedUser && (
         <RoleChangeModal
           isOpen={isModalOpen}

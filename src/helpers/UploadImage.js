@@ -3,7 +3,7 @@ const UploadImage = async(image) =>{
 
   const formData = new FormData()
   formData.append("file", image)
-  formData.append("upload_preset", "mern_product")
+  formData.append("upload_preset", "ecommerce_upload")
 
   const dataFetch = await fetch(url,{
     method : "post",

@@ -5,7 +5,7 @@ import cartImg from "../assest/Images/Cart.webp";
 import { Link } from "react-router-dom";
 import { useCart } from "../context/CartContext";
 import { FaPlusCircle, FaMinusCircle } from "react-icons/fa";
-import displayINRCurrency from "../helpers/displayCurrency";
+import displayBDTCurrency from "../helpers/displayCurrency";
 import { MdDelete } from "react-icons/md";
 import { toast } from "react-toastify";
 import { loadStripe } from "@stripe/stripe-js";
@@ -198,7 +198,7 @@ const Cart = () => {
                   </h3>
 
                   <p className="text-green-600 font-bold">
-                    {displayINRCurrency(
+                    {displayBDTCurrency(
                       item?.productId?.sellingPrice
                     )}
                   </p>
@@ -245,7 +245,7 @@ const Cart = () => {
 
             <p>Total Quantity: {totalQty}</p>
             <p className="font-bold text-lg">
-              Total: {displayINRCurrency(totalPrice)}
+              Total: {displayBDTCurrency(totalPrice)}
             </p>
 
             <button

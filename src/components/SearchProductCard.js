@@ -1,5 +1,5 @@
 import React from "react";
-import displayINRCurrency from "../helpers/displayCurrency";
+import displayBDTCurrency from "../helpers/displayCurrency";
 import useAddToCart from "../helpers/AddToCart";
 import { Link } from "react-router-dom";
 import { FaHeart } from "react-icons/fa";
@@ -45,10 +45,10 @@ const SearchProductCard = ({ loading, data = [] }) => {
                 <p className="text-slate-500 capitalize">{product?.category}</p>
                 <div className="flex gap-3">
                   <p className="text-md text-red-600 font-semibold">
-                    {displayINRCurrency(product?.sellingPrice)}
+                    {displayBDTCurrency(product?.sellingPrice)}
                   </p>
                   <p className="text-slate-500 line-through">
-                    {displayINRCurrency(product?.price)}
+                    {displayBDTCurrency(product?.price)}
                   </p>
                 </div>
                 <button

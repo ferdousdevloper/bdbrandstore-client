@@ -3,7 +3,7 @@ import SummaryApi from "../common/API";
 import emptyBox from "../assest/empty_order.gif";
 import { Link } from "react-router-dom";
 import moment from "moment";
-import displayINRCurrency from "../helpers/displayCurrency";
+import displayBDTCurrency from "../helpers/displayCurrency";
 
 const UserOrder = () => {
   const [orderData, setOrderData] = useState([]);
@@ -82,7 +82,7 @@ const UserOrder = () => {
                       </div>
                       <div className="flex items-center gap-5 mt-1">
                         <div className="text-lg text-red-500 ">
-                          {displayINRCurrency(product.price)}
+                          {displayBDTCurrency(product.price)}
                         </div>
                         <p className="text-lg text-slate-500">
                           Quantity: {product.quantity}
@@ -120,7 +120,7 @@ const UserOrder = () => {
                   </div>
                 </div>
                 <div className="text-lg text-slate-800 font-bold">
-                  Total Amount: {displayINRCurrency(order.total_amount || 0)}
+                  Total Amount: {displayBDTCurrency(order.total_amount || 0)}
                 </div>
               </div>
             </div>

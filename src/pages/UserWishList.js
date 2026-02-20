@@ -5,7 +5,7 @@ import wishlistImg from "../assest/Images/wishlist.png";
 import { Link } from "react-router-dom";
 import { MdDelete } from "react-icons/md";
 import Context from "../context/Context";
-import displayINRCurrency from "../helpers/displayCurrency";
+import displayBDTCurrency from "../helpers/displayCurrency";
 
 const UserWishList = () => {
   const user = useSelector((state) => state?.user?.user);
@@ -129,7 +129,7 @@ const UserWishList = () => {
                     </p>
                     <div className="flex items-center justify-between">
                       <p className="font-medium text-red-400 text-lg">
-                        {displayINRCurrency(product?.productId?.sellingPrice)}
+                        {displayBDTCurrency(product?.productId?.sellingPrice)}
                       </p>
                     </div>
                   </div>
