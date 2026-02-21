@@ -116,6 +116,10 @@ const SummaryApi = {
     url : `${backendDomain}/api/checkout`,
     method : "post"
   },
+  confirmStripeOrder : {
+    url : `${backendDomain}/api/confirm-stripe-order`,
+    method : "post"
+  },
   getOrderData : {
     url : `${backendDomain}/api/get-order-details`,
     method : "get"
@@ -123,7 +127,11 @@ const SummaryApi = {
   codOrder: {
     url: `${backendDomain}/api/cod-order`,
     method: "post"
-  }
+  },
+  deleteOrder: {
+    url: `${backendDomain}/api/delete-order`, // এখানে আইডি আমরা পরে যোগ করবো
+    method: "delete"
+},
 }
 
 export default SummaryApi

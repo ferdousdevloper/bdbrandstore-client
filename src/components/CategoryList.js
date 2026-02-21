@@ -1,22 +1,20 @@
 import React, { useEffect, useState } from "react";
 import SummaryApi from "../common/API";
 import { Link } from "react-router-dom";
-import { FaHeart } from "react-icons/fa";
+import { motion } from "framer-motion";
 
 const CategoryList = () => {
   const [categoryProduct, setCategoryProduct] = useState([]);
-  const [loding, setLoding] = useState(false);
-
-  const categoryLoading = new Array(13).fill(null);
+  const [loading, setLoading] = useState(false);
+  const categoryLoading = new Array(10).fill(null);
 
   const fetchCategoryProduct = async () => {
-    setLoding(true);
+    setLoading(true);
     const response = await fetch(SummaryApi.getProductByCategory.url, {
       method: SummaryApi.getProductByCategory.method,
     });
-
     const responseData = await response.json();
-    setLoding(false);
+    setLoading(false);
     setCategoryProduct(responseData?.data || []);
   };
 
@@ -25,34 +23,40 @@ const CategoryList = () => {
   }, []);
 
   return (
-    <div className="container pl-10 pr-10 pt-4 pb-4 mx-auto">
-      <div className="flex items-center gap-4  justify-between overflow-scroll scrollbar-none">
-        {loding
-          ? categoryLoading.map((el, index) => {
-              return (
-                <div className="w-16 h-16 md:w-20 md:h-20 rounded-full overflow-hidden bg-slate-200 animate-pulse" key={"categoryLoading"+index}></div>
-              );
-            })
-          : categoryProduct.map((category, index) => {
-              return (
+    <div className="container mx-auto px-4 md:px-6 py-6">
+      <div className="flex items-center gap-3 md:gap-4 overflow-x-auto scrollbar-thin scrollbar-none pb-2">
+        {loading
+          ? categoryLoading.map((_, index) => (
+              <div
+                key={"cat-skel-" + index}
+                className="flex-shrink-0 w-20 h-20 md:w-24 md:h-24 rounded-2xl bg-surface-200 animate-pulse"
+              />
+            ))
+          : categoryProduct.map((category, index) => (
+              <motion.div
+                key={category?.category + index}
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.03 }}
+              >
                 <Link
                   to={"/category-product?category=" + category?.category}
-                  className=" cursor-pointer"
-                  key={category?.category+index}
+                  className="flex flex-col items-center gap-3 group min-w-[90px]"
                 >
-                  <div className="w-16 h-16 md:w-20 md:h-20 rounded-full overflow-hidden p-4 bg-slate-200 flex justify-center items-center">
+                  <div className="w-16 h-16 md:w-20 md:h-20 rounded-[2rem] bg-white border border-slate-100 flex justify-center items-center overflow-hidden shadow-sm group-hover:shadow-xl group-hover:border-primary-500 group-hover:-translate-y-1 transition-all duration-500">
                     <img
-                      src={category?.productImage[0]}
+                      src={category?.productImage?.[0]}
                       alt={category?.category}
-                      className="h-full object-scale-down mix-blend-multiply hover:scale-125 transition-all"
+                      className="h-full w-full object-contain p-3 group-hover:scale-110 transition-transform duration-500 mix-blend-multiply"
                     />
                   </div>
-                  <p className="text-center text-sm md:text-base capitalize">
+                  <span className="text-xs md:text-sm font-bold text-slate-500 group-hover:text-primary-600 transition-colors capitalize tracking-tight">
                     {category?.category}
-                  </p>
+                  </span>
+                  <div className="h-1 w-0 group-hover:w-8 bg-primary-500 rounded-full transition-all duration-300"></div>
                 </Link>
-              );
-            })}
+              </motion.div>
+            ))}
       </div>
     </div>
   );

@@ -11,62 +11,39 @@ import { toast } from "react-toastify";
 import { loadStripe } from "@stripe/stripe-js";
 
 const Cart = () => {
-
   const user = useSelector((state) => state?.user?.user);
   const { countCartProducts } = useCart();
-
   const [cartData, setCartData] = useState([]);
   const [showShipping, setShowShipping] = useState(false);
+  const [shippingData, setShippingData] = useState({ fullName: "", address: "", phone: "" });
 
-  const [shippingData, setShippingData] = useState({
-    fullName: "",
-    address: "",
-    phone: "",
-  });
-
-  // ---------------- FETCH CART ----------------
   const fetchCartData = async () => {
     if (!user?._id) return;
-
-    const res = await fetch(
-      `${SummaryApi.countCart.url}/${user._id}`,
-      {
-        method: SummaryApi.countCart.method,
-        credentials: "include",
-        headers: { "content-type": "application/json" },
-      }
-    );
-
+    const res = await fetch(`${SummaryApi.countCart.url}/${user._id}`, {
+      method: SummaryApi.countCart.method,
+      credentials: "include",
+      headers: { "content-type": "application/json" },
+    });
     const data = await res.json();
-
-    if (data.success) {
-      setCartData(data.data);
-    }
+    if (data.success) setCartData(data.data);
   };
 
   useEffect(() => {
     fetchCartData();
   }, [user]);
 
-  // ---------------- UPDATE QTY ----------------
   const updateQuantity = async (id, qty, increase) => {
     const newQty = increase ? qty + 1 : qty - 1;
     if (newQty < 1) return;
-
     await fetch(SummaryApi.updateProductQuantity.url, {
       method: SummaryApi.updateProductQuantity.method,
       credentials: "include",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({
-        productId: id,
-        quantity: newQty,
-      }),
+      body: JSON.stringify({ productId: id, quantity: newQty }),
     });
-
     fetchCartData();
   };
 
-  // ---------------- DELETE ITEM ----------------
   const deleteProduct = async (id) => {
     const res = await fetch(SummaryApi.deleteCartProduct.url, {
       method: SummaryApi.deleteCartProduct.method,
@@ -74,9 +51,7 @@ const Cart = () => {
       headers: { "content-type": "application/json" },
       body: JSON.stringify({ cartProductId: id }),
     });
-
     const data = await res.json();
-
     if (data.success) {
       toast.success("Item removed");
       fetchCartData();
@@ -84,19 +59,9 @@ const Cart = () => {
     }
   };
 
-  // ---------------- TOTALS ----------------
-  const totalQty = cartData.reduce(
-    (sum, item) => sum + item.quantity,
-    0
-  );
+  const totalQty = cartData.reduce((sum, item) => sum + item.quantity, 0);
+  const totalPrice = cartData.reduce((sum, item) => sum + item.quantity * item?.productId?.sellingPrice, 0);
 
-  const totalPrice = cartData.reduce(
-    (sum, item) =>
-      sum + item.quantity * item?.productId?.sellingPrice,
-    0
-  );
-
-  // ---------------- VALIDATE SHIPPING ----------------
   const validateShipping = () => {
     if (!shippingData.fullName || !shippingData.address || !shippingData.phone) {
       toast.error("Please fill all shipping fields");
@@ -105,210 +70,157 @@ const Cart = () => {
     return true;
   };
 
-  // ---------------- COD ORDER ----------------
   const handleCOD = async () => {
-
     if (!validateShipping()) return;
-
     const res = await fetch(SummaryApi.codOrder.url, {
       method: SummaryApi.codOrder.method,
       credentials: "include",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({
-        cartItems: cartData,
-        shippingDetails: shippingData,
-      }),
+      body: JSON.stringify({ cartItems: cartData, shippingDetails: shippingData }),
     });
-
     const data = await res.json();
-
     if (data.success) {
       toast.success("COD Order placed successfully");
       setShippingData({ fullName: "", address: "", phone: "" });
       fetchCartData();
-    } else {
-      toast.error(data.message);
-    }
+      countCartProducts();
+    } else toast.error(data.message);
   };
 
-  // ---------------- STRIPE PAYMENT ----------------
   const handlePayment = async () => {
-
     if (!validateShipping()) return;
-
-    const stripe = await loadStripe(
-      process.env.REACT_APP_STRIPE_PUBLIC_KEY
-    );
-
+    const stripe = await loadStripe(process.env.REACT_APP_STRIPE_PUBLIC_KEY);
     const res = await fetch(SummaryApi.checkout.url, {
       method: SummaryApi.checkout.method,
       credentials: "include",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({
-        cartItems: cartData,
-        shippingDetails: shippingData,
-      }),
+      body: JSON.stringify({ cartItems: cartData, shippingDetails: shippingData }),
     });
-
     const data = await res.json();
-
-    if (data?.id) {
-      stripe.redirectToCheckout({ sessionId: data.id });
-    } else {
-      toast.error("Payment failed");
-    }
+    if (data?.id) stripe.redirectToCheckout({ sessionId: data.id });
+    else toast.error("Payment failed");
   };
 
-  // ---------------- UI ----------------
   return (
-    <div className="container mx-auto p-6">
-
-      <h2 className="text-2xl font-bold mb-6">My Cart</h2>
+    <div className="container mx-auto px-4 md:px-6 py-8">
+      <h1 className="text-2xl md:text-3xl font-bold text-slate-800 mb-6">My Cart</h1>
 
       {cartData.length === 0 ? (
-        <div className="text-center">
-          <img src={cartImg} className="mx-auto w-40" alt="cart" />
-          <p className="mt-4 text-gray-600">No items in cart</p>
+        <div className="bg-white rounded-2xl border border-surface-100 shadow-soft p-12 text-center">
+          <img src={cartImg} className="mx-auto w-36 h-36 object-contain opacity-80" alt="Empty cart" />
+          <p className="mt-4 text-slate-600">Your cart is empty</p>
           <Link
             to="/"
-            className="text-blue-600 font-semibold mt-2 inline-block"
+            className="inline-block mt-4 px-6 py-3 rounded-xl font-semibold text-white bg-primary-500 hover:bg-primary-600 transition-colors"
           >
             Continue Shopping
           </Link>
         </div>
       ) : (
         <div className="grid lg:grid-cols-3 gap-8">
-
-          {/* CART ITEMS */}
           <div className="lg:col-span-2 space-y-4">
             {cartData.map((item) => (
               <div
                 key={item._id}
-                className="border p-4 rounded-lg flex gap-4 shadow-sm"
+                className="bg-white rounded-2xl border border-surface-100 shadow-card p-4 flex gap-4 items-center"
               >
                 <img
-                  src={item?.productId?.productImage[0]}
-                  className="w-24 h-24 object-cover rounded"
-                  alt="product"
+                  src={item?.productId?.productImage?.[0]}
+                  alt=""
+                  className="w-24 h-24 md:w-28 md:h-28 object-cover rounded-xl"
                 />
-
-                <div className="flex-1">
-                  <h3 className="font-semibold">
-                    {item?.productId?.productName}
-                  </h3>
-
-                  <p className="text-green-600 font-bold">
-                    {displayBDTCurrency(
-                      item?.productId?.sellingPrice
-                    )}
+                <div className="flex-1 min-w-0">
+                  <h3 className="font-semibold text-slate-800 line-clamp-1">{item?.productId?.productName}</h3>
+                  <p className="text-slate-500 text-sm">
+                    {displayBDTCurrency(item?.productId?.sellingPrice)} x {item.quantity}
+                  </p>
+                  
+                  {/* এখানে প্রতিটি প্রোডাক্টের সাব-টোটাল দেখানো হচ্ছে */}
+                  <p className="text-primary-600 font-bold mt-0.5">
+                    Total: {displayBDTCurrency(item?.productId?.sellingPrice * item.quantity)}
                   </p>
 
-                  <div className="flex items-center gap-3 mt-2">
-                    <FaMinusCircle
-                      className="cursor-pointer"
-                      onClick={() =>
-                        updateQuantity(
-                          item._id,
-                          item.quantity,
-                          false
-                        )
-                      }
-                    />
-                    <span>{item.quantity}</span>
-                    <FaPlusCircle
-                      className="cursor-pointer"
-                      onClick={() =>
-                        updateQuantity(
-                          item._id,
-                          item.quantity,
-                          true
-                        )
-                      }
-                    />
+                  <div className="flex items-center gap-2 mt-2">
+                    <button
+                      type="button"
+                      className="w-8 h-8 rounded-lg bg-surface-100 flex items-center justify-center text-slate-600 hover:bg-primary-100 hover:text-primary-600 transition-colors"
+                      onClick={() => updateQuantity(item._id, item.quantity, false)}
+                    >
+                      <FaMinusCircle className="text-sm" />
+                    </button>
+                    <span className="w-8 text-center font-medium">{item.quantity}</span>
+                    <button
+                      type="button"
+                      className="w-8 h-8 rounded-lg bg-surface-100 flex items-center justify-center text-slate-600 hover:bg-primary-100 hover:text-primary-600 transition-colors"
+                      onClick={() => updateQuantity(item._id, item.quantity, true)}
+                    >
+                      <FaPlusCircle className="text-sm" />
+                    </button>
                   </div>
                 </div>
-
-                <MdDelete
-                  className="text-red-500 text-xl cursor-pointer"
+                <button
+                  type="button"
+                  className="p-2 rounded-xl text-slate-400 hover:bg-red-50 hover:text-accent-coral transition-colors"
                   onClick={() => deleteProduct(item._id)}
-                />
+                >
+                  <MdDelete className="text-xl" />
+                </button>
               </div>
             ))}
           </div>
+          {/* বাকি অংশ আগের মতোই থাকবে... */}
+          <div className="lg:col-span-1">
+            <div className="bg-white rounded-2xl border border-surface-100 shadow-soft p-6 sticky top-24">
+              <h3 className="text-lg font-bold text-slate-800 mb-4">Order Summary</h3>
+              <p className="text-slate-600">Items: {totalQty}</p>
+              <p className="text-xl font-bold text-primary-600 mt-2">{displayBDTCurrency(totalPrice)}</p>
 
-          {/* SUMMARY + SHIPPING */}
-          <div className="border p-5 rounded-lg shadow-md h-fit">
+              <button
+                type="button"
+                onClick={() => setShowShipping(!showShipping)}
+                className="w-full mt-4 py-3 rounded-xl font-semibold text-slate-700 bg-surface-100 hover:bg-surface-200 transition-colors"
+              >
+                {showShipping ? "Hide" : "Add"} Shipping Details
+              </button>
 
-            <h3 className="text-lg font-semibold mb-4">
-              Order Summary
-            </h3>
+              {showShipping && (
+                <div className="mt-4 space-y-3">
+                  <input
+                    className="w-full px-4 py-2.5 rounded-xl border border-surface-200 bg-surface-50 focus:outline-none focus:ring-2 focus:ring-primary-500/30"
+                    placeholder="Full Name"
+                    value={shippingData.fullName}
+                    onChange={(e) => setShippingData({ ...shippingData, fullName: e.target.value })}
+                  />
+                  <input
+                    className="w-full px-4 py-2.5 rounded-xl border border-surface-200 bg-surface-50 focus:outline-none focus:ring-2 focus:ring-primary-500/30"
+                    placeholder="Address"
+                    value={shippingData.address}
+                    onChange={(e) => setShippingData({ ...shippingData, address: e.target.value })}
+                  />
+                  <input
+                    className="w-full px-4 py-2.5 rounded-xl border border-surface-200 bg-surface-50 focus:outline-none focus:ring-2 focus:ring-primary-500/30"
+                    placeholder="Mobile Number"
+                    value={shippingData.phone}
+                    onChange={(e) => setShippingData({ ...shippingData, phone: e.target.value })}
+                  />
+                </div>
+              )}
 
-            <p>Total Quantity: {totalQty}</p>
-            <p className="font-bold text-lg">
-              Total: {displayBDTCurrency(totalPrice)}
-            </p>
-
-            <button
-              onClick={() => setShowShipping(!showShipping)}
-              className="w-full bg-gray-800 text-white py-2 mt-4 rounded"
-            >
-              Add Shipping Details
-            </button>
-
-            {showShipping && (
-              <div className="mt-4 space-y-3">
-                <input
-                  className="border w-full p-2 rounded"
-                  placeholder="Full Name"
-                  value={shippingData.fullName}
-                  onChange={(e) =>
-                    setShippingData({
-                      ...shippingData,
-                      fullName: e.target.value,
-                    })
-                  }
-                />
-
-                <input
-                  className="border w-full p-2 rounded"
-                  placeholder="Address"
-                  value={shippingData.address}
-                  onChange={(e) =>
-                    setShippingData({
-                      ...shippingData,
-                      address: e.target.value,
-                    })
-                  }
-                />
-
-                <input
-                  className="border w-full p-2 rounded"
-                  placeholder="Mobile Number"
-                  value={shippingData.phone}
-                  onChange={(e) =>
-                    setShippingData({
-                      ...shippingData,
-                      phone: e.target.value,
-                    })
-                  }
-                />
-              </div>
-            )}
-
-            <button
-              onClick={handlePayment}
-              className="w-full bg-blue-600 text-white py-2 mt-4 rounded"
-            >
-              Pay Online
-            </button>
-
-            <button
-              onClick={handleCOD}
-              className="w-full bg-green-600 text-white py-2 mt-2 rounded"
-            >
-              Cash On Delivery
-            </button>
-
+              <button
+                type="button"
+                onClick={handlePayment}
+                className="w-full mt-4 py-3 rounded-xl font-semibold text-white bg-primary-500 hover:bg-primary-600 transition-colors"
+              >
+                Pay Online
+              </button>
+              <button
+                type="button"
+                onClick={handleCOD}
+                className="w-full mt-2 py-3 rounded-xl font-semibold text-white bg-emerald-500 hover:bg-emerald-600 transition-colors"
+              >
+                Cash on Delivery
+              </button>
+            </div>
           </div>
         </div>
       )}

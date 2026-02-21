@@ -25,13 +25,7 @@ const AdminPanel = () => {
   const toggleSidebar = () => setSidebarVisible(!isSidebarVisible);
 
   const navStyle =
-    "flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all duration-300 relative";
-
-  // Framer Motion Variants
-  const sidebarVariants = {
-    hidden: { x: "-100%" },
-    visible: { x: 0, transition: { type: "spring", stiffness: 250, damping: 30 } },
-  };
+    "flex items-center gap-3 px-4 py-2 rounded-xl font-medium text-sm transition-all duration-300";
 
   const overlayVariants = {
     hidden: { opacity: 0 },
@@ -39,21 +33,22 @@ const AdminPanel = () => {
   };
 
   return (
-    <div className="flex min-h-[calc(100vh-70px)] bg-gray-100 relative">
-
+    // min-h-[calc(100vh-70px)] নিশ্চিত করে যে পুরো পেজটি ভিউপোর্টের সমান হবে
+    <div className="flex min-h-[calc(100vh-70px)] bg-surface-50 relative overflow-hidden">
+      
       {/* Mobile Toggle */}
       <div
-        className="absolute top-4 left-4 z-50 md:hidden cursor-pointer text-blue-700"
+        className="fixed top-4 left-4 z-50 md:hidden cursor-pointer text-primary-600 bg-white p-2 rounded-lg shadow-md"
         onClick={toggleSidebar}
       >
         <FaBars size={24} />
       </div>
 
-      {/* Overlay */}
+      {/* Overlay for Mobile */}
       <AnimatePresence>
         {isSidebarVisible && (
           <motion.div
-            className="fixed inset-0 bg-black/40 backdrop-blur-sm z-30 md:hidden"
+            className="fixed inset-0 bg-black/40 z-30 md:hidden"
             onClick={toggleSidebar}
             initial="hidden"
             animate="visible"
@@ -63,98 +58,99 @@ const AdminPanel = () => {
         )}
       </AnimatePresence>
 
-      {/* Sidebar */}
-      <AnimatePresence>
-        {(isSidebarVisible || window.innerWidth >= 768) && (
-          <motion.aside
-            className="fixed md:static top-0 left-0 h-full md:h-auto w-64 bg-white shadow-2xl p-6 z-40"
-            initial="hidden"
-            animate="visible"
-            exit="hidden"
-            variants={sidebarVariants}
+      {/* Sidebar - Sticky করা হয়েছে */}
+      <aside
+        className={`fixed md:sticky top-0 left-0 h-screen md:h-[calc(100vh-70px)] w-64 bg-gradient-to-b from-primary-800 via-primary-700 to-primary-600 text-white p-6 shadow-soft z-40 transform transition-transform duration-300 overflow-y-auto ${
+          isSidebarVisible
+            ? "translate-x-0"
+            : "-translate-x-full md:translate-x-0"
+        }`}
+      >
+        {/* Close button mobile */}
+        <div
+          className="absolute top-4 right-4 md:hidden cursor-pointer hover:scale-110 transition-transform"
+          onClick={toggleSidebar}
+        >
+          ✕
+        </div>
+
+        {/* Profile Section */}
+        <div className="flex flex-col items-center mb-8 mt-6 md:mt-0">
+          {user?.profilepic ? (
+            <img
+              src={user?.profilepic}
+              className="w-24 h-24 rounded-full border-4 border-white/20 shadow-xl object-cover"
+              alt={user?.name}
+            />
+          ) : (
+            <FaUserCircle size={96} className="text-white/50" />
+          )}
+          <h2 className="capitalize font-bold text-xl mt-3 text-center line-clamp-1">
+            {user?.name || "Admin"}
+          </h2>
+          <div className="bg-white/10 px-3 py-1 rounded-full mt-2">
+             <p className="text-primary-100 text-[10px] font-bold uppercase tracking-widest">
+                Admin Portal
+             </p>
+          </div>
+        </div>
+
+        {/* Navigation */}
+        <nav className="flex flex-col gap-2">
+          <NavLink
+            to="all-users"
+            onClick={() => setSidebarVisible(false)}
+            className={({ isActive }) =>
+              `${navStyle} ${
+                isActive
+                  ? "bg-white text-primary-700 shadow-lg"
+                  : "text-white hover:bg-white/10"
+              }`
+            }
           >
-            {/* Close mobile */}
-            <div
-              className="absolute top-3 right-3 md:hidden cursor-pointer text-gray-600"
-              onClick={toggleSidebar}
+            <FaUsers size={18} /> All Users
+          </NavLink>
+
+          <NavLink
+            to="all-products"
+            onClick={() => setSidebarVisible(false)}
+            className={({ isActive }) =>
+              `${navStyle} ${
+                isActive
+                  ? "bg-white text-primary-700 shadow-lg"
+                  : "text-white hover:bg-white/10"
+              }`
+            }
+          >
+            <FaBoxOpen size={18} /> All Products
+          </NavLink>
+
+          <NavLink
+            to="all-orders"
+            onClick={() => setSidebarVisible(false)}
+            className={({ isActive }) =>
+              `${navStyle} ${
+                isActive
+                  ? "bg-white text-primary-700 shadow-lg"
+                  : "text-white hover:bg-white/10"
+              }`
+            }
+          >
+            <FaShoppingCart size={18} /> All Orders
+          </NavLink>
+        </nav>
+      </aside>
+
+      {/* Main Content Area - এটা এখন আলাদাভাবে স্ক্রল হবে */}
+      <main className="flex-1 overflow-y-auto max-h-[calc(100vh-70px)] custom-scrollbar">
+        <div className="p-4 md:p-8">
+            <motion.div 
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="bg-white rounded-[2rem] border border-slate-100 shadow-sm p-4 md:p-8 min-h-full"
             >
-              ✕
-            </div>
-
-            {/* Profile */}
-            <div className="flex flex-col items-center mb-10 mt-6 md:mt-0">
-              {user?.profilepic ? (
-                <img
-                  src={user?.profilepic}
-                  className="w-24 h-24 rounded-full border-4 border-blue-600 shadow-md"
-                  alt={user?.name}
-                />
-              ) : (
-                <FaUserCircle size={90} className="text-gray-400" />
-              )}
-              <h2 className="capitalize font-semibold text-xl mt-4 text-gray-800">
-                {user?.name || "Admin"}
-              </h2>
-              <p className="text-sm text-gray-500">
-                Role: {user?.role || "USER"}
-              </p>
-            </div>
-
-            {/* Navigation */}
-            <nav className="flex flex-col gap-2">
-              <NavLink
-                to="all-users"
-                onClick={() => setSidebarVisible(false)}
-                className={({ isActive }) =>
-                  `${navStyle} ${
-                    isActive
-                      ? "bg-blue-600 text-white shadow-md"
-                      : "text-gray-700 hover:bg-blue-50 hover:text-blue-600"
-                  }`
-                }
-              >
-                <FaUsers size={18} />
-                All Users
-              </NavLink>
-
-              <NavLink
-                to="all-products"
-                onClick={() => setSidebarVisible(false)}
-                className={({ isActive }) =>
-                  `${navStyle} ${
-                    isActive
-                      ? "bg-blue-600 text-white shadow-md"
-                      : "text-gray-700 hover:bg-blue-50 hover:text-blue-600"
-                  }`
-                }
-              >
-                <FaBoxOpen size={18} />
-                Products
-              </NavLink>
-
-              <NavLink
-                to="all-orders"
-                onClick={() => setSidebarVisible(false)}
-                className={({ isActive }) =>
-                  `${navStyle} ${
-                    isActive
-                      ? "bg-blue-600 text-white shadow-md"
-                      : "text-gray-700 hover:bg-blue-50 hover:text-blue-600"
-                  }`
-                }
-              >
-                <FaShoppingCart size={18} />
-                All Orders
-              </NavLink>
-            </nav>
-          </motion.aside>
-        )}
-      </AnimatePresence>
-
-      {/* Main Content */}
-      <main className="flex-1 p-4 md:p-6">
-        <div className="bg-white rounded-2xl shadow-lg p-6 min-h-[80vh]">
-          <Outlet />
+              <Outlet />
+            </motion.div>
         </div>
       </main>
     </div>

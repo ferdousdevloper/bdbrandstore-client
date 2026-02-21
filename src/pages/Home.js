@@ -1,41 +1,40 @@
-import React from 'react'
-import CategoryList from '../components/CategoryList'
-import BannerProduct from '../components/BannerProduct'
-import HorizontalProductCard from '../components/HorizontalProductCard'
-import VerticalProductCard from '../components/VerticalProductCard'
+import React from "react";
+import CategoryList from "../components/CategoryList";
+import BannerProduct from "../components/BannerProduct";
+import HorizontalProductCard from "../components/HorizontalProductCard";
+import VerticalProductCard from "../components/VerticalProductCard";
+import { motion } from "framer-motion";
+
+const sectionVariants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: { opacity: 1, y: 0 },
+};
 
 const Home = () => {
   return (
-    <div >
+    <div className="bg-slate-50/50 min-h-screen pb-20">
       <CategoryList />
-      <BannerProduct/>
-
       
-      {/* //Horzontal card for airpodes */}
-      <HorizontalProductCard category={"airpodes"} heading={"Top Airpodes's"}/>
-      {/* //Horzontal card for Watches */}
-      <HorizontalProductCard category={"watches"} heading={"Popular Watches"}/>
-      {/* //Horzontal card for Earphones */}
-      <HorizontalProductCard category={"earphones"} heading={"Best Selling Earphones"}/>
-      {/* //Vertical card for Mobiles */}
-      <VerticalProductCard category={"mobiles"} heading={"Trending Phones"}/>
-      {/* //Vertical card for Mouse */}
-      <VerticalProductCard category={"mouse"} heading={"Top Deals on Mouse"}/>
-      {/* //Vertical card for Television */}
-      <VerticalProductCard category={"television"} heading={"Best Deals on Television"}/>
-      {/* //Vertical card for Camera */}
-      <VerticalProductCard category={"camera"} heading={"Camera & Accessories"}/>
-      {/* //Vertical card for Speakers */}
-      <VerticalProductCard category={"speakers"} heading={"Sound & Speakers"}/>
-      {/* //Vertical card for refrigerator */}
-      <VerticalProductCard category={"refrigerator"} heading={"Best Deals on Refregerator"}/>
+      <div className="space-y-12">
+        <BannerProduct />
 
-      {/* //Horzontal card for trimmers */}
-      <VerticalProductCard  category={"trimmers"} heading={"Best Trimmer's"}/>
-      
+        <section className="container mx-auto">
+           <HorizontalProductCard category="airpodes" heading="Exclusive Airpodes" />
+           <HorizontalProductCard category="watches" heading="Smart Watches" />
+        </section>
 
+        <section className="bg-white py-10 shadow-sm">
+           <VerticalProductCard category="mobiles" heading="Trending Smartphones" />
+        </section>
+
+        <div className="container mx-auto space-y-12">
+           <VerticalProductCard category="television" heading="Entertainment & TV" />
+           <VerticalProductCard category="camera" heading="Professional Cameras" />
+           <VerticalProductCard category="mouse" heading="Gaming Accessories" />
+        </div>
+      </div>
     </div>
-  )
-}
+  );
+};
 
-export default Home
+export default Home;

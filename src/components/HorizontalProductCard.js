@@ -1,103 +1,60 @@
 import React, { useContext, useEffect, useRef, useState } from "react";
 import fetchCategoryWiseProduct from "../helpers/fetchCategoryWiseProduct";
 import displayINR from "../helpers/displayCurrency";
-import { FaAngleLeft, FaAngleRight } from "react-icons/fa";
-import { Link, Navigate, useNavigate } from "react-router-dom";
-import useAddToCart from "../helpers/AddToCart";
-import { FaHeart } from "react-icons/fa";
-import { FaRegHeart } from "react-icons/fa";
+import { FaAngleLeft, FaAngleRight, FaHeart, FaRegHeart } from "react-icons/fa";
+import { Link } from "react-router-dom";
 import { useSelector } from "react-redux";
-import SummaryApi from "../common/API";
-import { toast } from "react-toastify";
+import useAddToCart from "../helpers/AddToCart";
 import AddToWishList from "../helpers/AddToWishlist";
-import context from "../context/Context";
 import DeleteToWishList from "../helpers/DeleteWishListProduct";
+import context from "../context/Context";
+import SummaryApi from "../common/API";
+import { motion } from "framer-motion";
 
 const HorizontalProductCard = ({ category, heading }) => {
   const user = useSelector((state) => state?.user?.user);
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
-  const loadingList = new Array(13).fill(null);
-  const navigate = useNavigate();
-
+  const [wishlist, setWishlist] = useState([]);
+  const scrollElement = useRef();
+  const addToCart = useAddToCart();
   const { fetchAddToWishListCount } = useContext(context);
 
-  const [scroll, setScroll] = useState(0);
-  const scrollElement = useRef();
-
-  const [wishlist, setWishlist] = useState([]);
-
-  const addToCart = useAddToCart();
+  const getWishlistItem = (productId) => wishlist.find((item) => item?.productId?._id === productId);
+  const isInWishlist = (productId) => Boolean(getWishlistItem(productId));
 
   const handleWishlistToggle = async (e, productId) => {
     e.preventDefault();
-
-    const wishlistItem = getWishlistItemByProductId(productId);
-    if (wishlistItem) {
-      await DeleteToWishList(e, wishlistItem._id);
-      // toast.success("Removed from Wishlist");
-    } else {
-      await AddToWishList(e, productId);
-      // toast.success("Added to Wishlist");
-    }
+    const item = getWishlistItem(productId);
+    if (item) await DeleteToWishList(e, item._id);
+    else await AddToWishList(e, productId);
     fetchAddToWishListCount();
     fetchWishlist();
   };
-
-  const getWishlistItemByProductId = (productId) => {
-    return wishlist.find((item) => item?.productId?._id === productId);
-  };
-
-  const isProductInWishlist = (productId) => {
-    return Boolean(getWishlistItemByProductId(productId));
-  };
-
 
   const fetchData = async () => {
     setLoading(true);
     try {
       const result = await fetchCategoryWiseProduct(category);
-      setData(result.product); // Ensure result.product is the correct path
-      // console.log(result);
-    } catch (error) {
-      console.error("Error fetching data:", error);
+      setData(result.product || []);
+    } catch (err) {
       setData([]);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
-  };
-
-  useEffect(() => {
-    fetchData();
-  }, []);
-
-  const scrollRight = () => {
-    scrollElement.current.scrollLeft += 300;
-  };
-
-  const scrollLeft = () => {
-    scrollElement.current.scrollLeft -= 300;
   };
 
   const fetchWishlist = async () => {
-    if (user?._id) {
-      try {
-        const response = await fetch(SummaryApi.getWishList.url, {
-          method: SummaryApi.getWishList.method,
-          headers: {
-            "content-type": "application/json",
-          },
-          credentials: "include",
-        });
-        const result = await response.json();
-        if (result.success) {
-          setWishlist(result.data);
-          // console.log(result.data)
-        }
-      } catch (error) {
-        console.error("Error fetching wishlist:", error);
-      }
-    }
-    // console.log("Wishlist Data",wishlist)
+    if (!user?._id) return;
+    try {
+      const res = await fetch(SummaryApi.getWishList.url, {
+        method: SummaryApi.getWishList.method,
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+      });
+      const json = await res.json();
+      if (json.success) setWishlist(json.data || []);
+    } catch (err) {}
   };
 
   useEffect(() => {
@@ -105,119 +62,95 @@ const HorizontalProductCard = ({ category, heading }) => {
     fetchWishlist();
   }, [user]);
 
-  // const isProductInWishlist = (productId) => {
-  //   return wishlist.some((item) => item?.productId?._id === productId);
-  // };
+  const scroll = (dir) => {
+    if (!scrollElement.current) return;
+    scrollElement.current.scrollLeft += dir === "right" ? 320 : -320;
+  };
 
   return (
-    <div className="px-10 my-4 mx-auto relative">
-      <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-semibold py-4">{heading}</h1>
+    <div className="container mx-auto px-4 md:px-6 py-6">
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="text-xl md:text-2xl font-bold text-slate-800">{heading}</h2>
         <div className="flex gap-2">
           <button
-            className="bg-slate-200 rounded-full shadow-md p-1 text-lg hidden md:block hover:scale-150 transition-all"
-            onClick={scrollLeft}
+            type="button"
+            className="w-9 h-9 rounded-xl bg-white border border-surface-200 shadow-card flex items-center justify-center text-slate-600 hover:bg-primary-50 hover:text-primary-600 hidden md:flex"
+            onClick={() => scroll("left")}
           >
             <FaAngleLeft />
           </button>
           <button
-            className="bg-slate-200 rounded-full shadow-md p-1 text-lg hidden md:block hover:scale-150 transition-all"
-            onClick={scrollRight}
+            type="button"
+            className="w-9 h-9 rounded-xl bg-white border border-surface-200 shadow-card flex items-center justify-center text-slate-600 hover:bg-primary-50 hover:text-primary-600 hidden md:flex"
+            onClick={() => scroll("right")}
           >
             <FaAngleRight />
           </button>
         </div>
       </div>
-
-      <div
-        className="flex items-center gap-2 md:gap-6 overflow-scroll scrollbar-none transition-all"
-        ref={scrollElement}
-      >
+      <div className="flex gap-4 overflow-x-auto scrollbar-thin scrollbar-none pb-2" ref={scrollElement}>
         {loading
-          ? loadingList.map((product, index) => {
-              return (
-                <div
-                  className="w-full min-w-[280px] md:min-w-[320px] max-w-[280px] md:max-w-[320px] h-36 bg-white rounded-sm shadow flex"
-                  key={index}
-                >
-                  <div className="bg-slate-200 p-4 h-full min-w-[120px] md:min-w-[150px] animate-pulse"></div>
-                  <div className="p-4 flex flex-col justify-between w-full">
-                    <h2 className="text-lg font-semibold text-ellipsis line-clamp-1 text-black bg-slate-200 p-1 py-2 w-full animate-pulse rounded-full"></h2>
-                    <p className="text-slate-500 capitalize p-1 bg-slate-200 animate-pulse py-2 rounded-full"></p>
-                    <div className="flex gap-3">
-                      <p className="text-md text-red-600 font-semiboldbold p-1 bg-slate-200 w-full animate-pulse py-2 rounded-full"></p>
-                      <p className="text-slate-500 line-through p-1 bg-slate-200 w-full animate-pulse py-2 rounded-full"></p>
-                    </div>
-                    <button className="text-sm w-full text-white rounded-full p-1 bg-slate-200 animate-pulse py-2"></button>
+          ? Array.from({ length: 5 }).map((_, i) => (
+              <div
+                key={i}
+                className="flex-shrink-0 w-[280px] md:w-[320px] h-36 bg-white rounded-2xl border border-surface-100 shadow-card flex"
+              >
+                <div className="w-32 md:w-36 h-full bg-surface-200 animate-pulse rounded-l-2xl" />
+                <div className="flex-1 p-4 flex flex-col justify-between">
+                  <div className="h-4 bg-surface-200 rounded animate-pulse w-full" />
+                  <div className="h-4 bg-surface-200 rounded animate-pulse w-2/3" />
+                  <div className="flex gap-2">
+                    <div className="h-5 bg-surface-200 rounded animate-pulse w-16" />
+                    <div className="h-5 bg-surface-200 rounded animate-pulse w-12" />
                   </div>
+                  <div className="h-9 bg-surface-200 rounded-xl animate-pulse w-24" />
                 </div>
-              );
-            })
-          : data.map((product, index) => {
-              return (
-                <Link
-                  to={`product/${product?._id}`}
-                  className="w-full min-w-[280px] md:min-w-[320px] max-w-[280px] md:max-w-[320px] h-36 bg-white rounded-sm shadow flex"
-                  key={index}
-                >
-                  <div className="bg-slate-200 p-4 h-full min-w-[120px] md:min-w-[150px]">
-                    <img
-                      src={product.productImage[0]}
-                      className="object-scale-down h-full hover:scale-125 transition-all mix-blend-multiply"
-                      alt={product?.productName}
-                    />
-                  </div>
-                  <div className="p-2 flex flex-col justify-between ">
-                    <div className="relative flex justify-end pb-6">
-                      {user?._id ? (
-                        <button
-                          className={`absolute top-0 right-0 text-2xl ${
-                            isProductInWishlist(product?._id)
-                              ? "text-red-500"
-                              : "text-slate-800"
-                          }`}
-                          onClick={(e) => handleWishlistToggle(e, product?._id)}
-                        >
-                          {isProductInWishlist(product?._id) ? (
-                            <FaHeart />
-                          ) : (
-                            <FaRegHeart />
-                          )}
-                        </button>
-                      ) : (
-                        <button
-                          className="absolute top-0 right-0 text-slate-800 text-2xl"
-                          onClick={(e) => handleWishlistToggle(e, product?._id)}
-                        >
-                          <FaRegHeart className="right-0 hover:text-3xl" />
-                        </button>
-                      )}
-                    </div>
+              </div>
+            ))
+          : data.map((product) => (
+              <motion.div
+  whileHover={{ scale: 1.03 }}
+  className="flex-shrink-0 w-[320px] md:w-[380px] bg-white rounded-[2rem] p-3 border border-slate-100 shadow-sm hover:shadow-[0_15px_30px_rgba(37,99,235,0.1)] transition-all duration-500"
+>
+  <Link to={`/product/${product._id}`} className="flex h-36 items-center gap-4">
+    
+    {/* Product Image Side */}
+    <div className="w-32 h-full bg-slate-50 rounded-[1.5rem] flex items-center justify-center p-3 flex-shrink-0 relative overflow-hidden">
+        {/* Small Red Corner Tag */}
+        <div className="absolute top-0 left-0 bg-red-600 text-[9px] text-white font-bold px-2 py-0.5 rounded-br-xl">
+           SALE
+        </div>
+        <img
+          src={product.productImage?.[0]}
+          className="h-full w-full object-contain mix-blend-multiply group-hover:scale-105 transition-all"
+        />
+    </div>
 
-                    <h2 className="text-lg font-semibold text-ellipsis line-clamp-1 text-black">
-                      {product?.productName}
-                    </h2>
-                    <p className="text-slate-500 capitalize">
-                      {product?.category}
-                    </p>
-                    <div className="flex gap-3">
-                      <p className="text-md text-red-600 font-semiboldbold">
-                        {displayINR(product?.sellingPrice)}
-                      </p>
-                      <p className="text-slate-500 line-through">
-                        {displayINR(product?.price)}
-                      </p>
-                    </div>
-                    <button
-                      className="text-sm bg-red-600 hover:bg-red-800 text-white rounded-full p-1"
-                      onClick={(e) => addToCart(e, product?._id)}
-                    >
-                      Add to cart
-                    </button>
-                  </div>
-                </Link>
-              );
-            })}
+    {/* Content Side */}
+    <div className="flex-1 flex flex-col justify-between h-full py-1">
+      <div className="space-y-1">
+        <p className="text-[9px] font-black text-primary-500 uppercase tracking-widest">{product?.category}</p>
+        <h3 className="font-bold text-slate-800 text-sm line-clamp-1 leading-tight">{product?.productName}</h3>
+        
+        <div className="flex flex-col mt-1">
+          <span className="text-lg font-black text-slate-900 leading-none">{displayINR(product?.sellingPrice)}</span>
+          <div className="flex items-center gap-2">
+            <span className="text-[10px] text-slate-400 line-through">{displayINR(product?.price)}</span>
+            <span className="text-[10px] text-red-600 font-bold">-{Math.round(((product.price - product.sellingPrice) / product.price) * 100)}%</span>
+          </div>
+        </div>
+      </div>
+
+      <button
+        onClick={(e) => addToCart(e, product?._id)}
+        className="w-full py-2.5 bg-gradient-to-r from-primary-600 to-primary-500 text-white rounded-xl text-[10px] font-black hover:shadow-lg hover:shadow-primary-200 transition-all uppercase tracking-tighter"
+      >
+        Add to Cart
+      </button>
+    </div>
+  </Link>
+</motion.div>
+            ))}
       </div>
     </div>
   );

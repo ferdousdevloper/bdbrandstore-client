@@ -1,127 +1,103 @@
 import React, { useContext, useState } from "react";
-import loginIcon from "../assest/signin.gif"; // corrected typo: from 'assest' to 'assets'
+import loginIcon from "../assest/signin.gif";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { Link, useNavigate } from "react-router-dom";
 import SummaryApi from "../common/API";
 import { toast } from "react-toastify";
 import context from "../context/Context";
+import { motion } from "framer-motion";
 
 const SignIn = () => {
   const [showPassword, setShowPassword] = useState(false);
-
-  //to store user data input through login
-  const [data, setData] = useState({
-    email: "guest@gmail.com",
-    password: "guest",
-  });
-
+  const [data, setData] = useState({ email: "guest@gmail.com", password: "guest" });
   const navigate = useNavigate();
   const { userDetail, fetchAddToWishListCount } = useContext(context);
 
-  // console.log("User Context : ", userContext)
-
   const handleOnChange = (e) => {
     const { name, value } = e.target;
-
-    setData((prev) => {
-      return {
-        ...prev,
-        [name]: value,
-      };
-    });
+    setData((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    const dataResponse = await fetch(SummaryApi.signIn.url, {
+    const res = await fetch(SummaryApi.signIn.url, {
       method: SummaryApi.signIn.method,
       credentials: "include",
-      headers: {
-        "content-type": "application/json",
-      },
+      headers: { "content-type": "application/json" },
       body: JSON.stringify(data),
     });
-
-    const dataApiResponse = await dataResponse.json();
-
-    if (dataApiResponse.success) {
-      toast.success(dataApiResponse.message);
+    const apiRes = await res.json();
+    if (apiRes.success) {
+      toast.success(apiRes.message);
       userDetail();
-      fetchAddToWishListCount()
+      fetchAddToWishListCount();
       navigate("/");
     } else {
-      toast.error(dataApiResponse.message);
+      toast.error(apiRes.message);
     }
   };
 
-  // console.log(data)
-
   return (
-    <section id="signin" className="py-12">
-      <div className="container py-2">
-        <div className="bg-white shadow-lg rounded-lg p-8 w-full max-w-md mx-auto">
-          <h1 className="text-5xl mb-4 text-red-500 underline text-center">
-            Sign In
-          </h1>
-          <div className="flex justify-center mb-6">
-            <img src={loginIcon} alt="login icon" className="w-24 h-24" />
-          </div>
-          <form className="space-y-6" onSubmit={handleSubmit}>
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1">
-                Email
-              </label>
-              <div className="relative">
-                <input
-                  type="email"
-                  placeholder="Enter your email"
-                  name="email"
-                  value={data.email}
-                  onChange={handleOnChange}
-                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:outline-none transition duration-150"
-                />
-              </div>
-            </div>
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1">
-                Password
-              </label>
-              <div className="relative flex items-center">
-                <input
-                  type={showPassword ? "text" : "password"}
-                  placeholder="Enter your password"
-                  name="password"
-                  value={data.password}
-                  onChange={handleOnChange}
-                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:outline-none transition duration-150"
-                />
-                <div
-                  className="absolute right-3 text-xl text-gray-600 cursor-pointer"
-                  onClick={() => setShowPassword((prev) => !prev)}
-                >
-                  {showPassword ? <FaEyeSlash /> : <FaEye />}
-                </div>
-              </div>
-              <Link
-                to={"/forgot-password"}
-                className="block text-sm w-fit hover:text-red-600 hover:underline mt-2 ml-auto"
-              >
-                Forgot password?
-              </Link>
-            </div>
-            <button className="w-full block max-w-[150px] mx-auto bg-red-600 text-white py-3 rounded-full font-semibold hover:bg-red-800 hover:scale-110 transition duration-150">
-              Sign In
-            </button>
-          </form>
-          <p className="my-4 block mx-auto text-md w-fit ">
-            Don't have an account?{" "}
-            <Link to={"/signup"} className="hover:text-red-600 hover:underline">
-              Sign Up
-            </Link>{" "}
-          </p>
+    <section className="py-12 px-4">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="max-w-md mx-auto bg-white rounded-2xl shadow-soft border border-surface-100 p-8"
+      >
+        <h1 className="text-2xl md:text-3xl font-bold text-slate-800 text-center mb-2">Sign In</h1>
+        <p className="text-slate-500 text-center text-sm mb-6">Welcome back to E-Store</p>
+        <div className="flex justify-center mb-6">
+          <img src={loginIcon} alt="Login" className="w-20 h-20 object-contain" />
         </div>
-      </div>
+        <form className="space-y-4" onSubmit={handleSubmit}>
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1">Email</label>
+            <input
+              type="email"
+              placeholder="Enter your email"
+              name="email"
+              value={data.email}
+              onChange={handleOnChange}
+              className="w-full px-4 py-3 rounded-xl border border-surface-200 bg-surface-50 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary-500/30 focus:border-primary-400 transition-all"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1">Password</label>
+            <div className="relative">
+              <input
+                type={showPassword ? "text" : "password"}
+                placeholder="Enter your password"
+                name="password"
+                value={data.password}
+                onChange={handleOnChange}
+                className="w-full px-4 py-3 pr-12 rounded-xl border border-surface-200 bg-surface-50 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary-500/30 focus:border-primary-400 transition-all"
+              />
+              <button
+                type="button"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-700"
+                onClick={() => setShowPassword((p) => !p)}
+              >
+                {showPassword ? <FaEyeSlash /> : <FaEye />}
+              </button>
+            </div>
+            <Link to="/forgot-password" className="block text-sm text-primary-600 hover:text-primary-700 mt-1.5 text-right">
+              Forgot password?
+            </Link>
+          </div>
+          <button
+            type="submit"
+            className="w-full py-3 rounded-xl font-semibold text-white bg-primary-500 hover:bg-primary-600 transition-colors shadow-soft"
+          >
+            Sign In
+          </button>
+        </form>
+        <p className="mt-6 text-center text-sm text-slate-600">
+          Don&apos;t have an account?{" "}
+          <Link to="/signup" className="font-semibold text-primary-600 hover:text-primary-700">
+            Sign Up
+          </Link>
+        </p>
+      </motion.div>
     </section>
   );
 };

@@ -3,8 +3,8 @@ import SummaryApi from "../common/API";
 import { toast } from "react-toastify";
 import moment from "moment";
 import { Link } from "react-router-dom";
-import { FaEdit } from "react-icons/fa";
-import { MdDelete } from "react-icons/md";
+import { FaEdit, FaUserCircle, FaChevronLeft, FaChevronRight } from "react-icons/fa";
+import { MdDelete, MdEmail, MdDateRange } from "react-icons/md";
 import RoleChangeModal from "../components/ChangeUserRole";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -44,22 +44,31 @@ const AllUsers = () => {
   };
 
   const handleRoleSubmit = async (userId, role) => {
-    try {
-      const res = await fetch(`${SummaryApi.updateRole.url}/${userId}`, {
-        method: SummaryApi.updateRole.method,
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ role }),
-      });
-      const data = await res.json();
-      if (data.success) {
-        toast.success("Role updated successfully");
-        fetchAllUser();
-      } else toast.error(data.message);
-    } catch {
-      toast.error("Failed to update role");
+  try {
+    const res = await fetch(`${SummaryApi.updateRole.url}/${userId}`, {
+      method: SummaryApi.updateRole.method,
+      headers: { 
+        "Content-Type": "application/json" 
+      },
+      // এই লাইনটি অত্যন্ত গুরুত্বপূর্ণ সেশন কুকি পাঠানোর জন্য
+      credentials: "include", 
+      body: JSON.stringify({ role: role }),
+    });
+
+    const data = await res.json();
+
+    if (data.success) {
+      toast.success(data.message);
+      fetchAllUser(); // লিস্ট আপডেট করার জন্য
+      handleModalClose(); // মোডাল বন্ধ করার জন্য
+    } else {
+      toast.error(data.message);
     }
-    handleModalClose();
-  };
+  } catch (err) {
+    toast.error("An error occurred while updating the role");
+    console.error("Update Role Error:", err);
+  }
+};
 
   const totalPages = Math.ceil(allUser.length / itemsPerPage);
   const paginatedUsers = allUser.slice(
@@ -69,94 +78,123 @@ const AllUsers = () => {
 
   const handlePageChange = (pageNumber) => setCurrentPage(pageNumber);
 
-  // Framer Motion Variants
-  const cardVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: { opacity: 1, y: 0 },
-    hover: { scale: 1.05, boxShadow: "0px 10px 20px rgba(0,0,0,0.2)" },
-  };
-
   return (
-    <div className="p-4 bg-gray-100 min-h-screen">
-      <h1 className="text-2xl font-bold text-gray-800 mb-6">All Users</h1>
+    <div className="container mx-auto">
+      <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
+        <div>
+          <h1 className="text-2xl md:text-3xl font-bold text-slate-800">Users Management</h1>
+          <p className="text-slate-500 text-sm mt-1">Manage all registered users and their roles</p>
+        </div>
+        <div className="bg-primary-100 text-primary-700 px-4 py-2 rounded-xl font-semibold text-sm self-start">
+          Total Users: {allUser.length}
+        </div>
+      </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        <AnimatePresence>
+      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        <AnimatePresence mode="popLayout">
           {paginatedUsers.map((user, idx) => (
             <motion.div
               key={user._id || idx}
-              className="bg-white rounded-xl shadow-lg p-5 flex flex-col items-center text-center"
-              variants={cardVariants}
-              initial="hidden"
-              animate="visible"
-              exit="hidden"
-              whileHover="hover"
-              transition={{ duration: 0.3 }}
+              layout
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              whileHover={{ y: -5 }}
+              className="bg-white rounded-3xl border border-surface-100 shadow-soft hover:shadow-card p-6 flex flex-col transition-all duration-300"
             >
-              <img
-                src={user.profilepic}
-                alt={user.name}
-                className="w-20 h-20 rounded-full border-2 border-blue-300 mb-4"
-              />
-              <h2 className="text-lg font-semibold text-gray-800">{user.name}</h2>
-              <p className="text-sm text-gray-500 mb-1">{user.email}</p>
-              <span className="px-3 py-1 rounded-full bg-blue-100 text-blue-800 text-xs font-medium mb-3">
-                {user.role}
-              </span>
-              <p className="text-gray-400 text-xs mb-3">
-                Joined {moment(user.createdAt).format("LL")}
-              </p>
-              <div className="flex gap-4">
+              {/* Profile Image & Badge */}
+              <div className="relative flex justify-center mb-4">
+                {user.profilepic ? (
+                  <img
+                    src={user.profilepic}
+                    alt={user.name}
+                    className="w-24 h-24 rounded-full object-cover ring-4 ring-primary-50 shadow-md"
+                  />
+                ) : (
+                  <div className="w-24 h-24 rounded-full bg-slate-100 flex items-center justify-center text-slate-400">
+                    <FaUserCircle size={80} />
+                  </div>
+                )}
+                <div className={`absolute bottom-0 right-1/2 translate-x-12 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider shadow-sm border ${
+                  user.role === 'ADMIN' 
+                  ? "bg-red-50 text-red-600 border-red-100" 
+                  : "bg-emerald-50 text-emerald-600 border-emerald-100"
+                }`}>
+                  {user.role}
+                </div>
+              </div>
+
+              {/* User Info */}
+              <div className="text-center flex-1">
+                <h2 className="text-lg font-bold text-slate-800 capitalize line-clamp-1">{user.name}</h2>
+                <div className="flex items-center justify-center gap-1.5 text-slate-500 text-sm mt-1">
+                  <MdEmail className="text-primary-400" />
+                  <span className="truncate max-w-[180px]">{user.email}</span>
+                </div>
+                <div className="flex items-center justify-center gap-1.5 text-slate-400 text-xs mt-3 bg-slate-50 py-2 rounded-xl">
+                  <MdDateRange />
+                  <span>Joined {moment(user.createdAt).format("MMM DD, YYYY")}</span>
+                </div>
+              </div>
+
+              {/* Actions */}
+              <div className="flex gap-3 mt-6">
                 <button
                   onClick={() => handleRoleChange(user)}
-                  className="bg-blue-500 hover:bg-blue-600 text-white p-2 rounded-lg transition-colors"
+                  className="flex-1 flex items-center justify-center gap-2 bg-primary-500 hover:bg-primary-600 text-white py-2.5 rounded-xl transition-all font-semibold text-sm shadow-md shadow-primary-500/20 active:scale-95"
                 >
-                  <FaEdit size={18} />
+                  <FaEdit size={14} /> Change Role
                 </button>
-                <Link
-                  to={""}
-                  className="bg-red-500 hover:bg-red-600 text-white p-2 rounded-lg transition-colors"
+                <button
+                  className="w-11 h-11 flex items-center justify-center text-slate-400 hover:text-red-500 bg-slate-50 hover:bg-red-50 rounded-xl transition-all border border-slate-100 active:scale-95"
+                  title="Delete User"
                 >
-                  <MdDelete size={18} />
-                </Link>
+                  <MdDelete size={20} />
+                </button>
               </div>
             </motion.div>
           ))}
         </AnimatePresence>
       </div>
 
-      {/* Pagination */}
-      <div className="flex justify-center items-center mt-6 space-x-2 flex-wrap">
-        <button
-          onClick={() => currentPage > 1 && handlePageChange(currentPage - 1)}
-          className="px-4 py-2 bg-white border rounded-lg shadow hover:bg-gray-50 transition"
-        >
-          Previous
-        </button>
-        {Array.from({ length: totalPages }, (_, idx) => (
+      {/* Modern Pagination */}
+      {totalPages > 1 && (
+        <div className="flex justify-center items-center mt-12 gap-2">
           <button
-            key={idx}
-            onClick={() => handlePageChange(idx + 1)}
-            className={`px-4 py-2 border rounded-lg shadow transition mb-2 ${
-              currentPage === idx + 1
-                ? "bg-blue-500 text-white border-blue-500"
-                : "bg-white text-gray-700 border-gray-300 hover:bg-blue-50 hover:text-blue-600"
-            }`}
+            onClick={() => currentPage > 1 && handlePageChange(currentPage - 1)}
+            disabled={currentPage === 1}
+            className="p-3 bg-white border border-slate-200 rounded-xl shadow-sm text-slate-600 hover:bg-primary-500 hover:text-white disabled:opacity-50 disabled:hover:bg-white disabled:hover:text-slate-600 transition-all duration-300"
           >
-            {idx + 1}
+            <FaChevronLeft size={14} />
           </button>
-        ))}
-        <button
-          onClick={() =>
-            currentPage < totalPages && handlePageChange(currentPage + 1)
-          }
-          className="px-4 py-2 bg-white border rounded-lg shadow hover:bg-gray-50 transition"
-        >
-          Next
-        </button>
-      </div>
+          
+          <div className="flex gap-1">
+            {Array.from({ length: totalPages }, (_, idx) => (
+              <button
+                key={idx}
+                onClick={() => handlePageChange(idx + 1)}
+                className={`w-10 h-10 rounded-xl font-bold text-sm transition-all duration-300 ${
+                  currentPage === idx + 1
+                    ? "bg-primary-500 text-white shadow-lg shadow-primary-500/30 scale-110"
+                    : "bg-white text-slate-600 border border-slate-200 hover:border-primary-500"
+                }`}
+              >
+                {idx + 1}
+              </button>
+            ))}
+          </div>
 
-      {/* Role Change Modal */}
+          <button
+            onClick={() => currentPage < totalPages && handlePageChange(currentPage + 1)}
+            disabled={currentPage === totalPages}
+            className="p-3 bg-white border border-slate-200 rounded-xl shadow-sm text-slate-600 hover:bg-primary-500 hover:text-white disabled:opacity-50 disabled:hover:bg-white disabled:hover:text-slate-600 transition-all duration-300"
+          >
+            <FaChevronRight size={14} />
+          </button>
+        </div>
+      )}
+
+      {/* Modal */}
       {selectedUser && (
         <RoleChangeModal
           isOpen={isModalOpen}

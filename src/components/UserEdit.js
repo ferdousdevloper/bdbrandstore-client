@@ -1,15 +1,16 @@
 import React, { useState } from "react";
 import imageToBase64 from "../helpers/imageToBase64";
-import loginIcon from "../assest/signin.gif"; // corrected typo: from 'assest' to 'assets'
-import { FaEye, FaEyeSlash, FaWindowClose } from "react-icons/fa";
+import loginIcon from "../assest/signin.gif"; 
+import { FaEye, FaEyeSlash, FaCamera } from "react-icons/fa";
+import { IoClose } from "react-icons/io5";
 import SummaryApi from "../common/API";
 import { toast } from "react-toastify";
 import { useSelector } from "react-redux";
+import { motion, AnimatePresence } from "framer-motion";
 
 const UserEdit = ({ onClose }) => {
   const user = useSelector((state) => state?.user?.user);
 
-  // console.log("User & OnClose", onClose, user)
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPwd, setShowConfirmPwd] = useState(false);
   const [userData, setUserData] = useState({
@@ -23,215 +24,174 @@ const UserEdit = ({ onClose }) => {
 
   const handleOnChange = (e) => {
     const { name, value } = e.target;
-
-    setUserData((prev) => {
-      return {
-        ...prev,
-        [name]: value,
-      };
-    });
+    setUserData((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleUploadPic = async (e) => {
     const file = e.target.files[0];
-
     const image = await imageToBase64(file);
-
-    // console.log("Image ", image)
-
-    setUserData((prev) => {
-      return {
-        ...prev,
-        profilepic: image,
-      };
-    });
+    setUserData((prev) => ({ ...prev, profilepic: image }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (userData.password !== userData.confirmPwd) {
+      return toast.error("Passwords do not match");
+    }
 
-    console.log(userData);
+    const dataResponse = await fetch(SummaryApi.updateUser.url, {
+      method: SummaryApi.updateUser.method,
+      headers: { "content-type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify(userData),
+    });
 
-    if (userData.password === userData.confirmPwd) {
-      const dataResponse = await fetch(SummaryApi.updateUser.url, {
-        method: SummaryApi.updateUser.method,
-        headers: {
-          "content-type": "application/json",
-        },
-        credentials : "include",
-        body: JSON.stringify(userData),
-      });
-
-      // console.log("User Data", userData);
-      const dataApiResponse = await dataResponse.json();
-      console.log(dataApiResponse)
-
-      if (dataApiResponse.success) {
-        toast.success(dataApiResponse.message);
-        onClose("false")
-      }
-      if (dataApiResponse.error) {
-        toast.error(dataApiResponse.message);
-      }
+    const dataApiResponse = await dataResponse.json();
+    if (dataApiResponse.success) {
+      toast.success(dataApiResponse.message);
+      onClose();
     } else {
-      toast.error("Please check your password");
+      toast.error(dataApiResponse.message);
     }
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-      <div className="relative p-4 w-full max-w-xl max-h-full">
-        <div className="relative bg-white rounded-lg shadow dark:bg-gray-700 overflow-hidden">
-          <div className="flex items-center justify-between p-4 md:p-5 border-b rounded-t dark:border-gray-600 ">
-            <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
-              Edit Profile
-            </h3>
-            <button
-              type="button"
-              onClick={onClose}
-              className="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white"
-            >
-              <svg
-                className="w-3 h-3"
-                aria-hidden="true"
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 14 14"
-              >
-                <path
-                  stroke="currentColor"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"
-                />
-              </svg>
-              <span className="sr-only">Close modal</span>
-            </button>
-          </div>
-          <section
-            id="signin"
-            className="p-4 md:p-5 space-y-4 text-white max-h-[450px] overflow-auto "
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+      {/* Background Overlay */}
+      <motion.div 
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        onClick={onClose}
+        className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"
+      />
+
+      {/* Modal Content */}
+      <motion.div
+        initial={{ scale: 0.9, opacity: 0, y: 20 }}
+        animate={{ scale: 1, opacity: 1, y: 0 }}
+        exit={{ scale: 0.9, opacity: 0, y: 20 }}
+        className="relative bg-white  w-full max-w-lg rounded-3xl shadow-2xl overflow-hidden border border-white/20"
+      >
+        {/* Header */}
+        <div className="flex items-center justify-between p-6 border-b border-slate-100 ">
+          <h3 className="text-2xl font-bold bg-gradient-to-r from-primary-600 to-blue-500 bg-clip-text text-transparent">
+            Edit Profile
+          </h3>
+          <button
+            onClick={onClose}
+            className="p-2 hover:bg-slate-100 rounded-full transition-colors text-slate-500"
           >
-            <div className="container py-2 mx-auto">
-              <div className="shadow-lg rounded-lg p-8 w-full max-w-4xl mx-auto relative bg-slate-600 bg-opacity-50">
-                <div className="w-24 h-24 mx-auto relative rounded-full overflow-hidden">
-                  <div>
-                    <img
-                      src={userData.profilepic || loginIcon}
-                      alt="login icon"
-                    />
-                  </div>
-                  <form>
-                    <label>
-                      <div className="text-xs bg-slate-200 bg-opacity-70 pb-4 pt-2 cursor-pointer absolute py-4 bottom-0 w-full text-center ">
-                        Upload Image
-                      </div>
-                      <input
-                        type="file"
-                        className="hidden"
-                        onChange={handleUploadPic}
-                      />
-                    </label>
-                  </form>
+            <IoClose size={24} />
+          </button>
+        </div>
+
+        {/* Scrollable Body */}
+        <div className="p-6 max-h-[75vh] overflow-y-auto custom-scrollbar">
+          <form className="space-y-6" onSubmit={handleSubmit}>
+            
+            {/* Profile Picture Section */}
+            <div className="flex flex-col items-center mb-8">
+              <div className="relative group">
+                <div className="w-28 h-28 rounded-full overflow-hidden ring-4 ring-primary-500/20 shadow-xl">
+                  <img
+                    src={userData.profilepic || loginIcon}
+                    alt="profile"
+                    className="w-full h-full object-cover transition group-hover:scale-110"
+                  />
                 </div>
-                <form className="space-y-2" onSubmit={handleSubmit}>
-                  <div>
-                    <label className="block text-lg font-medium text-gray-700 dark:text-gray-400">
-                      Name
-                    </label>
-                    <div className="relative">
-                      <input
-                        type="text"
-                        placeholder="Enter your name"
-                        name="name"
-                        value={userData?.name}
-                        onChange={handleOnChange}
-                        className="w-full h-8 p-3 border text-black border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:outline-none transition duration-150"
-                      />
-                    </div>
-                  </div>
-                  <div>
-                    <label className="block text-lg font-medium text-gray-700 dark:text-gray-400">
-                      Email
-                    </label>
-                    <div className="relative">
-                      <input
-                        type="email"
-                        placeholder="Enter your email"
-                        name="email"
-                        value={userData?.email}
-                        onChange={handleOnChange}
-                        className="w-full h-8 p-3 border text-black border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:outline-none transition duration-150"
-                      />
-                    </div>
-                  </div>
-                  <div>
-                    <label className="block text-lg font-medium text-gray-700 dark:text-gray-400">
-                      Contact
-                    </label>
-                    <div className="relative">
-                      <input
-                        type="text"
-                        placeholder="Enter your contact "
-                        name="contact"
-                        value={userData?.contact}
-                        onChange={handleOnChange}
-                        className="w-full h-8 p-3 border text-black border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:outline-none transition duration-150"
-                      />
-                    </div>
-                  </div>
-                  <div>
-                    <label className="block text-lg font-medium text-gray-700 dark:text-gray-400">
-                      Password
-                    </label>
-                    <div className="relative flex items-center">
-                      <input
-                        type={showPassword ? "text" : "password"}
-                        placeholder="Enter your password"
-                        name="password"
-                        value={userData?.password}
-                        onChange={handleOnChange}
-                        className="w-full h-8 p-3 border text-black border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:outline-none transition duration-150"
-                      />
-                      <div
-                        className="absolute right-3 text-xl text-gray-600 cursor-pointer"
-                        onClick={() => setShowPassword((prev) => !prev)}
-                      >
-                        {showPassword ? <FaEyeSlash /> : <FaEye />}
-                      </div>
-                    </div>
-                  </div>
-                  <div>
-                    <label className="block text-lg font-medium text-gray-700 dark:text-gray-400">
-                      Confirm Password
+                <label className="absolute bottom-1 right-1 bg-primary-500 p-2 rounded-full text-white cursor-pointer shadow-lg hover:bg-primary-600 transition-transform active:scale-90">
+                  <FaCamera size={14} />
+                  <input type="file" className="hidden" onChange={handleUploadPic} />
+                </label>
+              </div>
+              <p className="mt-2 text-sm text-slate-500 font-medium">Change Profile Photo</p>
+            </div>
+
+            {/* Input Fields */}
+            <div className="grid gap-5">
+              {[
+                { label: "Full Name", name: "name", type: "text", value: userData.name },
+                { label: "Email Address", name: "email", type: "email", value: userData.email },
+                { label: "Contact Number", name: "contact", type: "text", value: userData.contact },
+              ].map((field) => (
+                <div key={field.name} className="space-y-1.5">
+                  <label className="text-sm font-semibold text-slate-700  ml-1">
+                    {field.label}
+                  </label>
+                  <input
+                    type={field.type}
+                    name={field.name}
+                    value={field.value}
+                    onChange={handleOnChange}
+                    className="w-full px-4 py-3 rounded-xl border border-slate-200  focus:ring-2 focus:ring-primary-500 outline-none transition-all"
+                    placeholder={`Enter ${field.label.toLowerCase()}`}
+                  />
+                </div>
+              ))}
+
+              {/* Password Fields */}
+              <div className="grid md:grid-cols-2 gap-4">
+                {[
+                  { 
+                    label: "New Password", 
+                    name: "password", 
+                    show: showPassword, 
+                    setShow: setShowPassword 
+                  },
+                  { 
+                    label: "Confirm Password", 
+                    name: "confirmPwd", 
+                    show: showConfirmPwd, 
+                    setShow: setShowConfirmPwd 
+                  }
+                ].map((pwdField) => (
+                  <div key={pwdField.name} className="space-y-1.5">
+                    <label className="text-sm font-semibold text-slate-700  ml-1">
+                      {pwdField.label}
                     </label>
                     <div className="relative flex items-center">
                       <input
-                        type={showConfirmPwd ? "text" : "password"}
-                        placeholder="Confirm your password"
-                        name="confirmPwd"
-                        value={userData?.confirmPwd}
+                        type={pwdField.show ? "text" : "password"}
+                        name={pwdField.name}
                         onChange={handleOnChange}
-                        className="w-full h-8 p-3 border text-black border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:outline-none transition duration-150"
+                        className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-primary-500 outline-none transition-all"
+                        placeholder="••••••••"
                       />
-                      <div
-                        className="absolute right-3 text-xl text-gray-600 cursor-pointer"
-                        onClick={() => setShowConfirmPwd((prev) => !prev)}
+                      <button
+                        type="button"
+                        onClick={() => pwdField.setShow(!pwdField.show)}
+                        className="absolute right-3 text-slate-400 hover:text-primary-500"
                       >
-                        {showConfirmPwd ? <FaEyeSlash /> : <FaEye />}
-                      </div>
+                        {pwdField.show ? <FaEyeSlash /> : <FaEye />}
+                      </button>
                     </div>
                   </div>
-                  <button className="w-full block max-w-[150px] mx-auto bg-blue-600 text-white py-3 rounded-full font-semibold hover:bg-blue-800 hover:scale-110 transition duration-150">
-                    Update
-                  </button>
-                </form>
+                ))}
               </div>
             </div>
-          </section>
+
+            {/* Action Buttons */}
+            <div className="flex gap-4 pt-4">
+              <button
+                type="button"
+                onClick={onClose}
+                className="flex-1 py-3.5 rounded-xl font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 transition-all"
+              >
+                Cancel
+              </button>
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                type="submit"
+                className="flex-[2] py-3.5 rounded-xl font-bold text-white bg-gradient-to-r from-primary-500 to-blue-600 shadow-lg shadow-primary-500/30 hover:shadow-primary-500/50 transition-all"
+              >
+                Save Changes
+              </motion.button>
+            </div>
+          </form>
         </div>
-      </div>
+      </motion.div>
     </div>
   );
 };

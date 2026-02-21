@@ -1,7 +1,7 @@
 import { GrSearch } from "react-icons/gr";
 import { FaCircleUser } from "react-icons/fa6";
 import { FaShoppingCart } from "react-icons/fa";
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext, useState, useRef, useEffect } from "react";
 import Logo from "./Logo";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
@@ -12,15 +12,14 @@ import ROLE from "../common/Role";
 import { useCart } from "../context/CartContext";
 import { FaHeart } from "react-icons/fa";
 import Context from "../context/Context";
+import { motion, AnimatePresence } from "framer-motion";
 
 const Header = () => {
   const user = useSelector((state) => state?.user?.user);
-
   const [menuDisplay, setMenuDisplay] = useState(false);
-  const { cartCount, countCartProducts } = useCart();
-
+  const menuRef = useRef(null);
+  const { cartCount } = useCart();
   const context = useContext(Context);
-
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const location = useLocation();
@@ -33,151 +32,141 @@ const Header = () => {
       method: SummaryApi.userLogout.method,
       credentials: "include",
     });
-
     const data = await fetchDate.json();
-
     if (data.success) {
       toast.success(data.message);
       dispatch(setUserDetails(null));
       navigate("/");
     }
-
-    if (data.error) {
-      toast.error(data.message);
-    }
+    if (data.error) toast.error(data.message);
   };
 
   const handleSearch = (e) => {
     const { value } = e.target;
     setSearchValue(value);
-
-    if (value) {
-      navigate(`/search?q=${value}`);
-    } else {
-      navigate("/");
-    }
+    if (value) navigate(`/search?q=${value}`);
+    else navigate("/");
   };
 
-  return (
-    <header className="h-16 shadow-md bg-white fixed w-full z-40">
-      <div className="h-full container mx-auto flex items-center px-6 justify-between">
-        {/* Logo Div */}
-        <div>
-          <Link to={"/"}>
-            <Logo w={100} h={60} />
-          </Link>
-        </div>
-        {/* Logo Div Ends*/}
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (menuRef.current && !menuRef.current.contains(e.target)) setMenuDisplay(false);
+    };
+    if (menuDisplay) document.addEventListener("click", handleClickOutside);
+    return () => document.removeEventListener("click", handleClickOutside);
+  }, [menuDisplay]);
 
-        {/* Search Bar */}
-        <div className="hidden md:flex items-center w-full justify-between max-w-sm border rounded-full focus-within:shadow-md pl-2">
-          <input
-            type="text"
-            placeholder="Search for products, brands and more..."
-            className="w-full outline-none"
-            value={searchValue}
-            onChange={handleSearch}
-          />
-          <div className="text-lg text-white min-w-[50px] h-8 bg-red-600 flex items-center justify-center rounded-r-full">
-            <GrSearch />
+  return (
+    <header className="h-16 bg-white/90 backdrop-blur-md border-b border-surface-200/80 fixed w-full z-40 shadow-soft">
+      <div className="h-full container mx-auto flex items-center px-4 md:px-6 justify-between gap-4">
+        <Link to="/" className="flex-shrink-0">
+          <Logo w={100} h={60} />
+        </Link>
+
+        <div className="hidden md:flex flex-1 max-w-xl mx-4">
+          <div className="relative w-full group">
+            <input
+              type="text"
+              placeholder="Search products, brands..."
+              className="w-full py-2.5 pl-4 pr-12 rounded-2xl border border-surface-200 bg-surface-50 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary-500/30 focus:border-primary-400 transition-all"
+              value={searchValue}
+              onChange={handleSearch}
+            />
+            <div className="absolute right-2 top-1/2 -translate-y-1/2 w-9 h-9 rounded-xl bg-primary-500 text-white flex items-center justify-center group-hover:bg-primary-600 transition-colors">
+              <GrSearch className="w-4 h-4" />
+            </div>
           </div>
         </div>
-        {/* Search Bar Ends*/}
 
-        <div className="flex items-center gap-7">
-          {/* User Profile View */}
-          <div className="relative group flex justify-center">
-            {user?._id && (
-              <div
-                className="text-3xl cursor-pointer relative flex justify-center"
+        <div className="flex items-center gap-3 md:gap-5">
+          {user?._id && (
+            <div className="relative" ref={menuRef}>
+              <button
+                type="button"
                 onClick={() => setMenuDisplay((prev) => !prev)}
+                className="flex items-center gap-2 p-1.5 rounded-xl hover:bg-surface-100 transition-colors"
               >
                 {user?.profilepic ? (
-                  <img
-                    src={user?.profilepic}
-                    className="w-10 h-10 rounded-full"
-                    alt={user?.name}
-                  />
+                  <img src={user?.profilepic} className="w-9 h-9 rounded-full object-cover ring-2 ring-surface-200" alt={user?.name} />
                 ) : (
-                  <FaCircleUser />
+                  <span className="w-9 h-9 rounded-full bg-primary-100 text-primary-600 flex items-center justify-center">
+                    <FaCircleUser className="text-lg" />
+                  </span>
                 )}
-              </div>
-            )}
+              </button>
+              <AnimatePresence>
+                {menuDisplay && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -8 }}
+                    className="absolute right-0 top-full mt-2 py-2 w-48 bg-white rounded-2xl shadow-card border border-surface-100 overflow-hidden"
+                  >
+                    {user?.role === ROLE.ADMIN ? (
+                      <Link
+                        to="/admin-panel/all-products"
+                        className="block px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-primary-50 hover:text-primary-700 transition-colors"
+                        onClick={() => setMenuDisplay(false)}
+                      >
+                        Admin Panel
+                      </Link>
+                    ) : (
+                      <Link
+                        to="/user-panel/my-account"
+                        className="block px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-primary-50 hover:text-primary-700 transition-colors"
+                        onClick={() => setMenuDisplay(false)}
+                      >
+                        My Account
+                      </Link>
+                    )}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          )}
 
-            {menuDisplay && (
-              <div className="absolute bg-white bottom-0 top-11 h-fit p-2 shadow-lg rounded">
-                <nav>
-                  {user?.role === ROLE.ADMIN ? (
-                    <Link
-                      to={"/admin-panel/all-products"}
-                      className="whitespace-nowrap hover:bg-slate-200 rounded p-2"
-                      onClick={() => setMenuDisplay((prev) => !prev)}
-                    >
-                      Admin Panel
-                    </Link>
-                  ) : (
-                    <Link
-                      to={"/user-panel/my-account"}
-                      className="whitespace-nowrap hover:bg-slate-200 rounded p-2"
-                      onClick={() => setMenuDisplay((prev) => !prev)}
-                    >
-                      My Account
-                    </Link>
-                  )}
-                </nav>
-              </div>
-            )}
-          </div>
-          {/* User Profile View End*/}
-
-          {/** WishList Items */}
           {user?._id && user?.role === ROLE.USER && (
             <Link
-              to={"/user-panel/wishlist"}
-              className="text-2xl relative flex justify-center"
+              to="/user-panel/wishlist"
+              className="relative p-2 rounded-xl text-slate-600 hover:bg-surface-100 hover:text-accent-coral transition-colors"
             >
-              <span>
-                <FaHeart />
-              </span>
-              <div className="bg-red-600 text-white w-5 h-5 p-1 flex items-center justify-center rounded-full absolute -top-2 -right-2">
-                <p className="text-xs font-semibold ">
+              <FaHeart className="text-xl" />
+              {context.wishListProductCount > 0 && (
+                <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 flex items-center justify-center text-xs font-semibold text-white bg-accent-coral rounded-full">
                   {context.wishListProductCount}
-                </p>
-              </div>
+                </span>
+              )}
             </Link>
           )}
 
-          {/* Cart Div */}
           {user?._id && user?.role === ROLE.USER && (
-            <Link to={"/user-panel/cart"} className="text-2xl relative flex justify-center">
-              <span>
-                <FaShoppingCart />
-              </span>
-              <div className="bg-red-600 text-white w-5 h-5 p-1 flex items-center justify-center rounded-full absolute -top-2 -right-2">
-                <p className="text-xs">{cartCount}</p>
-              </div>
+            <Link
+              to="/user-panel/cart"
+              className="relative p-2 rounded-xl text-slate-600 hover:bg-surface-100 hover:text-primary-600 transition-colors"
+            >
+              <FaShoppingCart className="text-xl" />
+              {cartCount > 0 && (
+                <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 flex items-center justify-center text-xs font-semibold text-white bg-primary-500 rounded-full">
+                  {cartCount}
+                </span>
+              )}
             </Link>
           )}
-          {/* Cart Div Ends*/}
 
-          {/* SignIn & SignOut Button */}
-          <div>
-            {user?._id ? (
-              <button
-                className="px-3 h-8 bg-red-600 rounded-full text-white hover:bg-red-700"
-                onClick={handleLogout}
-              >
-                Logout
+          {user?._id ? (
+            <button
+              className="px-4 py-2 rounded-xl text-sm font-semibold text-slate-700 bg-surface-100 hover:bg-surface-200 transition-colors"
+              onClick={handleLogout}
+            >
+              Logout
+            </button>
+          ) : (
+            <Link to="/signin">
+              <button className="px-4 py-2 rounded-xl text-sm font-semibold text-white bg-primary-500 hover:bg-primary-600 transition-colors shadow-soft">
+                Sign In
               </button>
-            ) : (
-              <Link to={"signin"}>
-                <button className="px-3 h-8 bg-red-600 rounded-full text-white hover:bg-red-700">
-                  Sign In
-                </button>
-              </Link>
-            )}
-          </div>
-          {/* SignIn & SignOut Button Ends*/}
+            </Link>
+          )}
         </div>
       </div>
     </header>

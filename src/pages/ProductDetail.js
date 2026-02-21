@@ -1,13 +1,22 @@
 import React, { useEffect, useState, useContext } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import SummaryApi from "../common/API";
-import {FaStar,FaRegStar,FaStarHalfAlt,FaShoppingCart,FaBolt,FaHeart,FaRegHeart,} from "react-icons/fa";
+import {
+  FaStar,
+  FaStarHalfAlt,
+  FaRegStar,
+  FaShoppingCart,
+  FaBolt,
+  FaHeart,
+  FaRegHeart,
+} from "react-icons/fa";
 import displayBDTCurrency from "../helpers/displayCurrency";
 import VerticalProductCard from "../components/VerticalProductCard";
 import useAddToCart from "../helpers/AddToCart";
 import AddToWishList from "../helpers/AddToWishlist";
 import { useSelector } from "react-redux";
 import context from "../context/Context";
+import { motion } from "framer-motion";
 
 const ProductDetail = () => {
   const user = useSelector((state) => state?.user?.user);
@@ -21,238 +30,188 @@ const ProductDetail = () => {
     sellingPrice: "",
   });
   const [loading, setLoading] = useState(false);
-  const productImageListLoading = new Array(4).fill(null);
-  const [activeImg, setActiveImg] = useState();
+  const [activeImg, setActiveImg] = useState(null);
   const [zoomPosition, setZoomPosition] = useState({ x: 0, y: 0 });
   const [showZoom, setShowZoom] = useState(false);
   const [wishlist, setWishlist] = useState([]);
   const addToCart = useAddToCart();
   const { fetchAddToWishListCount } = useContext(context);
-
   const productId = useParams();
+  const navigate = useNavigate();
 
   const fetchProductDetails = async () => {
     setLoading(true);
-    const data = await fetch(
-      `${SummaryApi.singleProductDetail.url}/${productId?.id}`,
-      {
-        method: SummaryApi.singleProductDetail.method,
-      }
-    );
-    setLoading(false);
+    const data = await fetch(`${SummaryApi.singleProductDetail.url}/${productId?.id}`, {
+      method: SummaryApi.singleProductDetail.method,
+    });
     const response = await data.json();
-    setProductData(response?.product);
-    setActiveImg(response?.product?.productImage[0]);
+    setLoading(false);
+    setProductData(response?.product || {});
+    setActiveImg(response?.product?.productImage?.[0]);
   };
 
   useEffect(() => {
     fetchProductDetails();
-  }, [productId]);
+  }, [productId?.id]);
 
   const fetchWishlist = async () => {
-    if (user?._id) {
-      try {
-        const response = await fetch(SummaryApi.getWishList.url, {
-          method: SummaryApi.getWishList.method,
-          headers: {
-            "content-type": "application/json",
-          },
-          credentials: "include",
-        });
-        const result = await response.json();
-        if (result.success) {
-          setWishlist(result.data);
-        }
-      } catch (error) {
-        console.error("Error fetching wishlist:", error);
-      }
-    }
+    if (!user?._id) return;
+    try {
+      const res = await fetch(SummaryApi.getWishList.url, {
+        method: SummaryApi.getWishList.method,
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+      });
+      const result = await res.json();
+      if (result.success) setWishlist(result.data || []);
+    } catch (err) {}
   };
 
   useEffect(() => {
     fetchWishlist();
   }, [user]);
 
-  const handleImage = (imageUrl) => {
-    setActiveImg(imageUrl);
-  };
-
   const handleMouseMove = (e) => {
-    const { left, top, width, height } =
-      e.currentTarget.getBoundingClientRect();
-    const x = ((e.clientX - left) / width) * 100;
-    const y = ((e.clientY - top) / height) * 100;
-    setZoomPosition({ x, y });
+    const { left, top, width, height } = e.currentTarget.getBoundingClientRect();
+    setZoomPosition({
+      x: ((e.clientX - left) / width) * 100,
+      y: ((e.clientY - top) / height) * 100,
+    });
   };
 
   const handleAddToWishList = async (e, id) => {
     e.preventDefault();
     await AddToWishList(e, id);
     fetchAddToWishListCount();
-    fetchWishlist(); // Re-fetch the wishlist after adding a product
+    fetchWishlist();
   };
 
-  const isProductInWishlist = (productId) => {
-    return wishlist.some((item) => item?.productId?._id === productId);
+  const isInWishlist = (id) => wishlist.some((item) => item?.productId?._id === id);
+  const productImageListLoading = Array(4).fill(null);
+
+  const handleBuyNow = async (e) => {
+    const result = await addToCart(e, productData?._id);
+    if (result?.success) navigate("/user-panel/cart");
   };
 
   return (
-    <div className="container mx-auto p-4 mt-6">
-      <div className="container mx-auto p-4">
-        <div className="min-h-[200px] flex flex-col lg:flex-row gap-4">
-          {/** Product Image */}
-          <div className="h-96 flex gap-4 flex-col lg:flex-row-reverse rounded">
-            <div className="h-[300px] w-[300px] lg:w-96 lg:h-96 bg-slate-200 relative">
-              <img
-                src={activeImg}
-                className="w-full h-full mix-blend-multiply object-scale-down rounded"
-                onMouseMove={handleMouseMove}
-                onMouseEnter={() => setShowZoom(true)}
-                onMouseLeave={() => setShowZoom(false)}
+    <div className="container mx-auto px-4 md:px-6 py-8">
+      <div className="min-h-[200px] flex flex-col lg:flex-row gap-8">
+        <div className="flex flex-col lg:flex-row-reverse gap-4">
+          <div className="relative h-72 lg:h-96 w-full max-w-md rounded-2xl bg-surface-50 border border-surface-100 overflow-visible">
+            <div className="w-full h-full overflow-hidden rounded-2xl">
+              {activeImg && (
+                <img
+                  src={activeImg}
+                  alt=""
+                  className="w-full h-full object-contain mix-blend-multiply p-4 cursor-zoom-in"
+                  onMouseMove={handleMouseMove}
+                  onMouseEnter={() => setShowZoom(true)}
+                  onMouseLeave={() => setShowZoom(false)}
+                />
+              )}
+            </div>
+            {showZoom && activeImg && (
+              <div
+                className="hidden lg:block absolute top-0 left-full ml-4 w-64 h-64 border border-surface-200 rounded-xl overflow-hidden bg-surface-50 shadow-lg z-10 pointer-events-none"
+                style={{
+                  backgroundImage: `url(${activeImg})`,
+                  backgroundSize: "400%",
+                  backgroundRepeat: "no-repeat",
+                  backgroundPosition: `${zoomPosition.x}% ${zoomPosition.y}%`,
+                }}
               />
-
-              {/** Product Image Zoom Effect */}
-              {showZoom && (
-                <div
-                  className="hidden lg:block absolute min-h-[500px] min-w-[500px] bg-slate-200 p-1 top-0 -right-[510px] overflow-hidden border border-gray-300 rounded"
-                  style={{
-                    backgroundImage: `url(${activeImg})`,
-                    backgroundSize: "200%",
-                    backgroundRepeat: "no-repeat",
-                    backgroundPosition: `${zoomPosition.x}% ${zoomPosition.y}%`,
-                  }}
-                ></div>
-              )}
-            </div>
-            <div className="h-full">
-              {loading ? (
-                <div className="flex justify-between gap-2 lg:flex-col overflow-scroll scrollbar-none h-full">
-                  {productImageListLoading.map((el, index) => (
-                    <div
-                      className="h-20 w-20 rounded bg-slate-200 animate-pulse"
-                      key={index}
-                    ></div>
-                  ))}
-                </div>
-              ) : (
-                <div className="flex justify-between gap-2 lg:flex-col overflow-scroll scrollbar-none h-full">
-                  {productData.productImage.map((imageUrl, index) => (
-                    <div
-                      className="h-20 w-20 rounded bg-slate-200 p-2"
-                      key={index}
-                    >
-                      <img
-                        src={imageUrl}
-                        className="h-full w-full object-scale-down mix-blend-multiply cursor-pointer p-2"
-                        onMouseEnter={() => handleImage(imageUrl)}
-                        onClick={() => handleImage(imageUrl)}
-                      />
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
+            )}
           </div>
+          <div className="flex gap-2 lg:flex-col overflow-x-auto scrollbar-none">
+            {loading
+              ? productImageListLoading.map((_, i) => (
+                  <div key={i} className="h-20 w-20 rounded-xl bg-surface-200 animate-pulse flex-shrink-0" />
+                ))
+              : productData.productImage?.map((img, i) => (
+                  <button
+                    key={i}
+                    type="button"
+                    className={`h-20 w-20 rounded-xl border-2 flex-shrink-0 overflow-hidden transition-all ${
+                      activeImg === img ? "border-primary-500" : "border-surface-200"
+                    }`}
+                    onClick={() => setActiveImg(img)}
+                  >
+                    <img src={img} alt="" className="w-full h-full object-contain mix-blend-multiply" />
+                  </button>
+                ))}
+          </div>
+        </div>
 
-          {/** Product Details */}
+        <div className="flex-1">
           {loading ? (
-            <div className="flex flex-col gap-2 mt-2">
-              <p className="bg-slate-200 animate-pulse px-5 py-3  rounded-full w-full inline-block" />
-              <h1 className="text-2xl lg:text-4xl font-semibold bg-slate-200 animate-pulse px-5 py-3 rounded-full w-full" />
-              <p className="text-slate-400 capitalize bg-slate-200 animate-pulse px-5 py-3 rounded-full w-full" />
-              <div className="text-yellow-500 gap-1 flex items-center bg-slate-200 animate-pulse rounded-full px-5 py-3 w-full"></div>
-              <div className="flex gap-4 flex-col font-semibold lg:text-3xl text-2xl my-1 ">
-                <p className="bg-slate-200 rounded-full animate-pulse px-5 py-3 w-full"></p>
-                <p className="line-through text-slate-400 text-sm lg:font-medium lg:text-lg bg-slate-200 animate-pulse rounded-full px-5 py-3 w-full"></p>
-              </div>
-              <div className="flex items-center gap-3 my-2 text-xl font-bold">
-                <button className=" bg-slate-200  text-white animate-pulse rounded-full px-5 py-3  min-w-[150px] flex items-center justify-center"></button>
-                <button className="bg-slate-200  text-white animate-pulse rounded-full px-5 py-3 min-w-[150px] flex items-center justify-center"></button>
-              </div>
-              <div className="flex flex-col text-center ">
-                <p className="text-xl lg:text-2xl text-slate-600 w-full font-semibold text-decoration-line: underline animate-pulse bg-slate-200 rounded-full px-5 py-3 "></p>
-                <p className="w-full text-wrap bg-slate-200  text-white rounded-full animate-pulse px-5 py-3 mt-3 "></p>
-              </div>
+            <div className="space-y-3">
+              <div className="h-6 bg-surface-200 rounded animate-pulse w-24" />
+              <div className="h-10 bg-surface-200 rounded animate-pulse w-full" />
+              <div className="h-5 bg-surface-200 rounded animate-pulse w-32" />
+              <div className="h-12 bg-surface-200 rounded animate-pulse w-40" />
+              <div className="h-12 bg-surface-200 rounded-xl animate-pulse w-full" />
             </div>
           ) : (
-            <div className="flex flex-col gap-2 mt-2">
-              <div className="flex items-center">
-                <p className="bg-red-200 text-red-600 px-2 rounded-full w-fit inline-block">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="space-y-4"
+            >
+              <div className="flex items-center gap-2">
+                <span className="px-3 py-1 rounded-full text-sm font-medium bg-primary-100 text-primary-700">
                   {productData.brandName}
-                </p>
+                </span>
                 <button
-                  className={`ml-2 text-2xl ${
-                    isProductInWishlist(productData?._id)
-                      ? "text-red-500"
-                      : "text-slate-800"
-                  }`}
+                  type="button"
+                  className={`p-2 rounded-xl ${isInWishlist(productData?._id) ? "text-accent-coral" : "text-slate-500 hover:text-accent-coral"}`}
                   onClick={(e) => handleAddToWishList(e, productData?._id)}
                 >
-                  {isProductInWishlist(productData?._id) ? (
-                    <FaHeart />
-                  ) : (
-                    <FaRegHeart />
-                  )}
+                  {isInWishlist(productData?._id) ? <FaHeart className="text-xl" /> : <FaRegHeart className="text-xl" />}
                 </button>
               </div>
-              <h1 className="text-2xl lg:text-4xl font-semibold">
-                {productData.productName}
-              </h1>
-              <p className="text-slate-400 capitalize">
-                {productData.category}
-              </p>
-              <div className="text-yellow-500 gap-1 flex items-center">
-                <FaStar />
-                <FaStar />
-                <FaStar />
-                <FaStarHalfAlt />
-                <FaRegStar />
+              <h1 className="text-2xl md:text-3xl font-bold text-slate-800">{productData.productName}</h1>
+              <p className="text-slate-500 capitalize">{productData.category}</p>
+              <div className="flex text-amber-500 gap-0.5">
+                <FaStar /><FaStar /><FaStar /><FaStarHalfAlt /><FaRegStar />
               </div>
-              <div className="flex gap-4 items-center font-semibold lg:text-3xl text-2xl my-1">
-                <p>{displayBDTCurrency(productData.sellingPrice)}</p>
-                <p className="line-through text-slate-400 rounded w-fit text-sm lg:font-medium lg:text-lg">
-                  {displayBDTCurrency(productData.price)}
-                </p>
-
-                {/** Calculate and display discount percentage */}
+              <div className="flex flex-wrap items-center gap-3">
+                <span className="text-2xl font-bold text-primary-600">{displayBDTCurrency(productData.sellingPrice)}</span>
+                <span className="text-slate-400 line-through">{displayBDTCurrency(productData.price)}</span>
                 {productData.sellingPrice && productData.price && (
-                  <p className="text-green-500 text-sm">
-                    {Math.round(
-                      ((productData.price - productData.sellingPrice) /
-                        productData.price) *
-                        100
-                    )}
-                    % off
-                  </p>
+                  <span className="text-sm font-medium text-emerald-600">
+                    {Math.round(((productData.price - productData.sellingPrice) / productData.price) * 100)}% off
+                  </span>
                 )}
               </div>
-              <div className="flex items-center gap-3 my-2 text-xl font-bold">
-                <button className="border-2 border-amber-600 bg-amber-600 hover:bg-amber-700 text-white rounded px-3 py-1 min-w-[150px] flex items-center justify-center">
-                  <FaBolt className="mr-2" /> Buy Now
+              <div className="flex flex-wrap gap-3">
+                <button
+                  type="button"
+                  className="px-6 py-3 rounded-xl font-semibold text-white bg-amber-500 hover:bg-amber-600 transition-colors flex items-center gap-2"
+                  onClick={handleBuyNow}
+                >
+                  <FaBolt /> Buy Now
                 </button>
                 <button
-                  className="border-2 border-orange-600 bg-orange-600 hover:bg-orange-700 text-white rounded px-3 py-1 min-w-[150px] flex items-center justify-center"
+                  className="px-6 py-3 rounded-xl font-semibold text-white bg-primary-500 hover:bg-primary-600 transition-colors flex items-center gap-2"
                   onClick={(e) => addToCart(e, productData?._id)}
                 >
-                  <FaShoppingCart className="mr-2" /> Add To Cart
+                  <FaShoppingCart /> Add to Cart
                 </button>
               </div>
-              <div className="flex flex-col text-center">
-                <p className="text-xl lg:text-2xl text-slate-600 font-semibold text-decoration-line: underline">
-                  Product Description
-                </p>
-                <p className="w-full text-wrap">{productData.productDesc}</p>
+              <div className="pt-4 border-t border-surface-200">
+                <p className="text-lg font-semibold text-slate-700 mb-2">Description</p>
+                <p className="text-slate-600 leading-relaxed">{productData.productDesc}</p>
               </div>
-            </div>
+            </motion.div>
           )}
         </div>
       </div>
-      {/** Related Products */}
+
       {productData?.category && (
-        <VerticalProductCard
-          category={productData?.category}
-          heading={"Related Products"}
-        />
+        <div className="mt-12">
+          <VerticalProductCard category={productData.category} heading="Related Products" />
+        </div>
       )}
     </div>
   );

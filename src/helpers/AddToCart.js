@@ -29,16 +29,19 @@ const useAddToCart = () => {
     if (apiResponse.status === 401 || apiResponse.status === 403) {
       navigate('/signin');
       toast.error("Please log in first.");
-      return;
+      return { success: false };
     }
 
     if (data.success) {
       countCartProducts();
       toast.success(data.message);
+      return { success: true };
     } else if (data.error) {
       toast.error(data.message);
+      return { success: false };
     } else {
       toast.error("An unexpected error occurred");
+      return { success: false };
     }
   };
 
