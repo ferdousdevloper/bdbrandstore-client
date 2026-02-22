@@ -21,6 +21,7 @@ import Success from "../pages/Success";
 import Cancel from "../pages/Cancel";
 import Order from "../pages/Order";
 import AdminOrders from "../pages/AdminOrders";
+import Statistics from "../pages/Statistics"; // 🔥 নতুন ইমপোর্ট
 
 const router = createBrowserRouter([
   {
@@ -76,6 +77,11 @@ const router = createBrowserRouter([
         path: "admin-panel",
         element: <AdminPanel />,
         children: [
+          // 🔥 অ্যাডমিন ড্যাশবোর্ড লোড হলেই যাতে স্ট্যাটিস্টিক্স দেখা যায়, চাইলে path: "" হিসেবেও দিতে পারেন
+          {
+            path: "statistics",
+            element: <Statistics />,
+          },
           {
             path: "all-users",
             element: <AllUsers />,

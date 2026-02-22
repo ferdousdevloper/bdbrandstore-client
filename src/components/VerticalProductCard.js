@@ -111,7 +111,7 @@ const VerticalProductCard = ({ category, heading }) => {
           : data.map((product) => (
               <motion.div
   whileHover={{ y: -10 }}
-  className="flex-shrink-0 w-[250px] md:w-[280px] bg-white rounded-[2.5rem] p-3 border border-slate-50 relative group transition-all duration-500 hover:shadow-[0_20px_50px_rgba(37,99,235,0.15)]" 
+  className="flex-shrink-0 w-[250px] md:w-[280px] bg-white rounded-[2.5rem] p-3 border border-slate-50 relative group transition-all duration-500 hover:shadow-[0_20px_50px_rgba(37,99,235,0.15)] group" 
   /* এখানে rgba(37,99,235,0.15) আপনার থিমের প্রাইমারি কালার অনুযায়ী অ্যাডজাস্ট করবেন */
 >
   <Link to={`/product/${product._id}`} className="flex flex-col h-full">
@@ -162,7 +162,7 @@ const VerticalProductCard = ({ category, heading }) => {
           <span className="text-xs text-red-500 font-bold bg-red-50 px-2 py-0.5 rounded-full w-fit mb-1 italic">
             Limited Deal
           </span>
-          <div className="flex md:flex-row flex-col items-baseline gap-1">
+          <div className="flex  flex-col items-baseline gap-1">
             <span className="text-xl font-black text-slate-900 tracking-tighter">{displayINR(product?.sellingPrice)}</span>
             <span className="text-xs text-slate-400 line-through font-medium ml-1">{displayINR(product?.price)}</span>
           </div>
@@ -179,6 +179,7 @@ const VerticalProductCard = ({ category, heading }) => {
         </button>
     </div>
   </Link>
+  <div className="h-1.5 w-0 group-hover:w-full bg-gradient-to-r from-primary-400 to-blue-600 transition-all duration-500 shadow-[0_-4px_10px_rgba(59,130,246,0.3)]"></div>
 </motion.div>
             ))}
       </div>

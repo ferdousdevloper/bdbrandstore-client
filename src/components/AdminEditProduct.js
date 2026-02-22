@@ -98,221 +98,162 @@ const AdminEditProduct = ({ onClose, product, fetchData }) => {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 z-[110] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4"
+        // z-index increased to [9999] and backdrop blur improved
+        className="fixed pt-20 inset-0 z-[9999] flex items-center justify-center bg-slate-900/70 backdrop-blur-md p-4"
       >
         <motion.div
-          initial={{ y: 50, opacity: 0, scale: 0.95 }}
+          initial={{ y: 20, opacity: 0, scale: 0.98 }}
           animate={{ y: 0, opacity: 1, scale: 1 }}
-          exit={{ y: 50, opacity: 0, scale: 0.95 }}
-          className="bg-white w-full max-w-4xl rounded-[2.5rem] shadow-2xl flex flex-col max-h-[95vh] overflow-hidden border border-white/20"
+          exit={{ y: 20, opacity: 0, scale: 0.98 }}
+          // Size reduced to max-w-2xl to fit better
+          className="bg-white w-full max-w-2xl rounded-[2rem] shadow-2xl flex flex-col max-h-[90vh] overflow-hidden border border-slate-200"
         >
           {/* --- Header --- */}
-          <div className="flex justify-between items-center px-10 py-6 border-b border-slate-100 bg-slate-50/50">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-primary-100 text-primary-600 rounded-2xl flex items-center justify-center">
-                <FaRegEdit size={24} />
+          <div className="flex justify-between items-center px-8 py-5 border-b border-slate-100 bg-slate-50/50">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-blue-100 text-blue-600 rounded-xl flex items-center justify-center">
+                <FaRegEdit size={20} />
               </div>
               <div>
-                <h2 className="text-2xl font-black text-slate-800 tracking-tight">
-                  Edit Product
-                </h2>
-                <p className="text-sm text-slate-500 font-medium">Refine your product details</p>
+                <h2 className="text-xl font-bold text-slate-800">Edit Product</h2>
+                <p className="text-xs text-slate-500 font-medium">Refine your product details</p>
               </div>
             </div>
             <button
               onClick={onClose}
-              className="w-10 h-10 flex items-center justify-center bg-white rounded-full text-slate-400 hover:text-red-500 hover:shadow-lg transition-all border border-slate-100"
+              className="w-9 h-9 flex items-center justify-center bg-white rounded-full text-slate-400 hover:text-red-500 hover:shadow-md transition-all border border-slate-100"
             >
-              <MdClose size={24} />
+              <MdClose size={20} />
             </button>
           </div>
 
-          {/* --- Body --- */}
+          {/* --- Form Body --- */}
           <form
             onSubmit={handleSubmit}
-            className="flex-1 overflow-y-auto px-10 py-8 space-y-8 scrollbar-thin scrollbar-thumb-slate-200"
+            className="flex-1 overflow-y-auto px-8 py-6 space-y-6 scrollbar-thin scrollbar-thumb-slate-200"
           >
-            {/* Row 1: Basic Info */}
-            <div className="grid md:grid-cols-2 gap-8">
-              <div className="space-y-2">
-                <label className="text-sm font-bold text-slate-700 ml-1">Product Title</label>
+            <div className="grid md:grid-cols-2 gap-5">
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-slate-600 ml-1">Product Title</label>
                 <input
                   type="text"
                   name="productName"
-                  placeholder="Enter product name"
                   value={productData.productName}
                   onChange={handleOnChange}
-                  className="w-full px-5 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl focus:bg-white focus:ring-4 focus:ring-primary-100 focus:border-primary-500 outline-none transition-all font-medium text-slate-800"
+                  className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-blue-400 outline-none transition-all text-sm shadow-sm"
                   required
                 />
               </div>
 
-              <div className="space-y-2">
-                <label className="text-sm font-bold text-slate-700 ml-1">Brand Identifier</label>
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-slate-600 ml-1">Brand Name</label>
                 <input
                   type="text"
                   name="brandName"
-                  placeholder="Enter brand name"
                   value={productData.brandName}
                   onChange={handleOnChange}
-                  className="w-full px-5 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl focus:bg-white focus:ring-4 focus:ring-primary-100 focus:border-primary-500 outline-none transition-all font-medium text-slate-800"
+                  className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-blue-400 outline-none transition-all text-sm shadow-sm"
                   required
                 />
               </div>
             </div>
 
-            {/* Row 2: Category */}
-            <div className="space-y-2">
-              <label className="text-sm font-bold text-slate-700 ml-1">Collection / Category</label>
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-slate-600 ml-1">Category</label>
               <select
                 name="category"
                 value={productData.category}
                 onChange={handleOnChange}
-                className="w-full px-5 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl focus:bg-white focus:ring-4 focus:ring-primary-100 focus:border-primary-500 outline-none transition-all font-medium text-slate-700 cursor-pointer shadow-sm"
+                className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white outline-none transition-all text-sm shadow-sm cursor-pointer"
                 required
               >
-                <option value="" disabled>Select a category</option>
+                <option value="" disabled>Select Category</option>
                 {ProductCategory.map((cat, index) => (
                   <option key={index} value={cat.value}>{cat.label}</option>
                 ))}
               </select>
             </div>
 
-            {/* Row 3: Image Upload Area */}
-            <div className="space-y-3">
-              <label className="text-sm font-bold text-slate-700 ml-1">Media Gallery</label>
-              
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-slate-600 ml-1">Media Gallery</label>
               <div
                 onDragOver={(e) => e.preventDefault()}
                 onDrop={handleDrop}
-                onClick={() => document.getElementById('upload-input').click()}
-                className={`group border-2 border-dashed rounded-[2rem] p-10 text-center transition-all cursor-pointer bg-slate-50/50
-                  ${isUploading ? 'border-primary-400 bg-primary-50' : 'border-slate-200 hover:border-primary-400 hover:bg-primary-50/30'}`}
+                onClick={() => document.getElementById('edit-upload-input').click()}
+                className="border-2 border-dashed border-slate-200 rounded-2xl p-6 text-center hover:bg-blue-50 transition-all cursor-pointer"
               >
-                <input
-                  id="upload-input"
-                  type="file"
-                  className="hidden"
-                  onChange={handleUploadProductImage}
-                />
-                <div className="flex flex-col items-center gap-2">
-                  <div className={`w-16 h-16 rounded-2xl flex items-center justify-center transition-all mb-2
-                    ${isUploading ? 'bg-primary-500 text-white animate-bounce' : 'bg-white text-slate-400 group-hover:text-primary-500 shadow-sm'}`}>
-                    <FaCloudUploadAlt size={32} />
-                  </div>
-                  <p className="text-slate-600 font-bold">
-                    {isUploading ? "Processing Media..." : "Drag media here or click to browse"}
-                  </p>
-                  <p className="text-xs text-slate-400 font-medium">Supports JPG, PNG, WEBP (Max 5MB)</p>
+                <input id="edit-upload-input" type="file" className="hidden" onChange={handleUploadProductImage} />
+                <div className="flex flex-col items-center gap-1">
+                  <FaCloudUploadAlt size={28} className="text-slate-400" />
+                  <p className="text-sm font-bold text-slate-600">{isUploading ? "Uploading..." : "Click to upload media"}</p>
                 </div>
               </div>
 
-              {/* Image Preview Grid */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 gap-4 mt-6">
-                <AnimatePresence>
+              {productData.productImage.length > 0 && (
+                <div className="flex gap-3 mt-3 overflow-x-auto pb-2 scrollbar-none">
                   {productData.productImage.map((img, index) => (
-                    <motion.div 
-                      key={index}
-                      layout
-                      initial={{ opacity: 0, scale: 0.8 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      exit={{ opacity: 0, scale: 0.8 }}
-                      className="relative aspect-square group rounded-2xl border border-slate-100 overflow-hidden shadow-sm hover:shadow-md transition-all"
-                    >
-                      <img
-                        src={img}
-                        alt="preview"
-                        className="h-full w-full object-contain bg-white p-2 cursor-pointer"
-                        onClick={() => {
-                          setfullScreenImage(img);
-                          setopenFullScreenImage(true);
-                        }}
+                    <div key={index} className="relative min-w-[70px] h-16 bg-white border border-slate-200 rounded-lg p-1 group">
+                      <img 
+                        src={img} 
+                        className="w-full h-full object-contain cursor-pointer" 
+                        onClick={() => {setfullScreenImage(img); setopenFullScreenImage(true);}} 
                       />
-                      <button
+                      <button 
                         type="button"
-                        onClick={() => handleDeleteProductImage(index)}
-                        className="absolute top-2 right-2 w-8 h-8 bg-red-500 text-white rounded-xl flex items-center justify-center opacity-0 group-hover:opacity-100 shadow-lg transition-all hover:bg-red-600"
+                        onClick={() => handleDeleteProductImage(index)} 
+                        className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 shadow-md opacity-0 group-hover:opacity-100 transition-opacity"
                       >
-                        <MdDelete size={18} />
+                        <MdDelete size={12} />
                       </button>
-                    </motion.div>
+                    </div>
                   ))}
-                </AnimatePresence>
+                </div>
+              )}
+            </div>
+
+            <div className="grid md:grid-cols-2 gap-5">
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-slate-600 ml-1">Market Price (৳)</label>
+                <input type="number" name="price" value={productData.price} onChange={handleOnChange} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none text-sm" required />
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-slate-600 ml-1">Selling Price (৳)</label>
+                <input type="number" name="sellingPrice" value={productData.sellingPrice} onChange={handleOnChange} className="w-full px-4 py-2.5 bg-slate-50 border border-blue-200 rounded-xl outline-none text-sm text-blue-600 font-bold" required />
               </div>
             </div>
 
-            {/* Row 4: Pricing */}
-            <div className="grid md:grid-cols-2 gap-8">
-              <div className="space-y-2">
-                <label className="text-sm font-bold text-slate-700 ml-1">Market Price (৳)</label>
-                <div className="relative">
-                  <span className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 font-bold">৳</span>
-                  <input
-                    type="number"
-                    name="price"
-                    value={productData.price}
-                    onChange={handleOnChange}
-                    className="w-full pl-10 pr-5 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl focus:bg-white focus:ring-4 focus:ring-primary-100 focus:border-primary-500 outline-none transition-all font-bold text-slate-700"
-                    placeholder="0.00"
-                    required
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-sm font-bold text-slate-700 ml-1">Our Selling Price (৳)</label>
-                <div className="relative">
-                  <span className="absolute left-5 top-1/2 -translate-y-1/2 text-primary-500 font-bold">৳</span>
-                  <input
-                    type="number"
-                    name="sellingPrice"
-                    value={productData.sellingPrice}
-                    onChange={handleOnChange}
-                    className="w-full pl-10 pr-5 py-3.5 bg-slate-50 border border-primary-100 rounded-2xl focus:bg-white focus:ring-4 focus:ring-primary-100 focus:border-primary-500 outline-none transition-all font-bold text-primary-600"
-                    placeholder="0.00"
-                    required
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Row 5: Description */}
-            <div className="space-y-2 pb-4">
-              <label className="text-sm font-bold text-slate-700 ml-1">Product Narrative</label>
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-slate-600 ml-1">Description</label>
               <textarea
                 name="productDesc"
                 value={productData.productDesc}
                 onChange={handleOnChange}
-                className="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-[2rem] h-40 resize-none focus:bg-white focus:ring-4 focus:ring-primary-100 focus:border-primary-500 outline-none transition-all font-medium text-slate-700 leading-relaxed"
-                placeholder="Tell your customers more about this product..."
+                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl h-24 resize-none outline-none text-sm leading-relaxed"
+                placeholder="Description..."
               />
             </div>
           </form>
 
           {/* --- Footer --- */}
-          <div className="flex items-center justify-end gap-4 px-10 py-7 border-t border-slate-100 bg-slate-50/80 backdrop-blur-md">
-            <button
-              onClick={onClose}
-              className="px-8 py-3.5 rounded-2xl font-bold text-slate-500 hover:bg-white hover:text-slate-800 transition-all border border-transparent hover:border-slate-200"
+          <div className="flex items-center justify-end gap-3 px-8 py-5 border-t border-slate-100 bg-slate-50/80 backdrop-blur-md">
+            <button 
+              type="button"
+              onClick={onClose} 
+              className="px-6 py-2.5 rounded-xl text-sm font-bold text-slate-500 hover:bg-slate-200 transition-all"
             >
-              Discard Changes
+              Cancel
             </button>
-            <motion.button
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              onClick={handleSubmit}
-              className="px-10 py-3.5 rounded-2xl bg-gradient-to-r from-primary-600 to-blue-600 text-white font-black shadow-xl shadow-primary-600/20 hover:shadow-primary-600/40 transition-all"
+            <button 
+              onClick={handleSubmit} 
+              className="px-8 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-sm font-bold shadow-lg hover:shadow-blue-500/30 transition-all"
             >
-              Save Product Details
-            </motion.button>
+              Save Changes
+            </button>
           </div>
         </motion.div>
 
         {openFullScreenImage && (
-          <DisplayImage
-            imageUrl={fullScreenImage}
-            onClose={() => setopenFullScreenImage(false)}
-          />
+          <DisplayImage imageUrl={fullScreenImage} onClose={() => setopenFullScreenImage(false)} />
         )}
       </motion.div>
     </AnimatePresence>

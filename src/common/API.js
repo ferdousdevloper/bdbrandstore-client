@@ -132,6 +132,10 @@ const SummaryApi = {
     url: `${backendDomain}/api/delete-order`, // এখানে আইডি আমরা পরে যোগ করবো
     method: "delete"
 },
+getStatistics: {
+    url: `${backendDomain}/api/get-statistics`,
+    method: "get"
+},
 }
 
 export default SummaryApi

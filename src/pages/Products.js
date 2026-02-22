@@ -15,6 +15,9 @@ import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "react-toastify";
 import Swal from "sweetalert2";
 
+// .env থেকে ডোমেইনটি নিয়ে আসা হচ্ছে
+const BACKEND_DOMAIN = process.env.REACT_APP_BACKEND_DOMAIN;
+
 const Products = () => {
   const [openUploadProduct, setopenUploadProduct] = useState(false);
   const [products, setProducts] = useState([]);
@@ -28,6 +31,7 @@ const Products = () => {
   const fetchProducts = async () => {
     try {
       setLoading(true);
+      // SummaryApi এর URL যদি হার্ডকোডেড থাকে তবে সেটিও ডাইনামিকলি হ্যান্ডেল করা উচিত
       const response = await fetch(SummaryApi.getProduct.url, {
         method: SummaryApi.getProduct.method,
       });
@@ -44,7 +48,7 @@ const Products = () => {
     fetchProducts();
   }, []);
 
-  // --- Fixed Delete Product Functionality ---
+  // --- Fixed Delete Product Functionality with .env ---
   const handleDeleteProduct = async (productId) => {
     const result = await Swal.fire({
       title: 'Are you sure?',
@@ -61,18 +65,14 @@ const Products = () => {
 
     if (result.isConfirmed) {
       try {
-        // টোকেনটি সাধারণত Cookies এ থাকে (যেহেতু আপনি ব্যাকএন্ডে req.cookies চেক করছেন)
-        // তাই credentials: 'include' ব্যবহার করা হয়েছে। 
-        // বাড়তি নিরাপত্তার জন্য Headers এ টোকেন পাস করা হচ্ছে (যদি সেটি localStorage এ থাকে)।
-        
-        const response = await fetch(`http://localhost:8080/api/delete-product/${productId}`, {
+        // 🔥 URL updated with BACKEND_DOMAIN
+        const response = await fetch(`${BACKEND_DOMAIN}/api/delete-product/${productId}`, {
           method: "DELETE",
           headers: {
             "content-type": "application/json",
-            // টোকেন যদি localStorage এ থাকে তবে নিচের লাইনটি কাজ করবে
             "authorization" : localStorage.getItem('token') 
           },
-          credentials: 'include' // কুকি থেকে টোকেন নেওয়ার জন্য এটি অত্যন্ত জরুরি
+          credentials: 'include' 
         });
 
         const dataResponse = await response.json();

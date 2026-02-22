@@ -81,7 +81,7 @@ function App() {
           <ToastContainer  position="top-center"/>
           <Header />
           <ScrollToTop />
-          <main className="min-h-[calc(100vh-70px)] pt-16">
+          <main className="pt-16 min-h-[calc(100vh-64px)]">
             <Outlet />
           </main>
           <Footer />

@@ -110,7 +110,7 @@ const HorizontalProductCard = ({ category, heading }) => {
           : data.map((product) => (
               <motion.div
   whileHover={{ scale: 1.03 }}
-  className="flex-shrink-0 w-[320px] md:w-[380px] bg-white rounded-[2rem] p-3 border border-slate-100 shadow-sm hover:shadow-[0_15px_30px_rgba(37,99,235,0.1)] transition-all duration-500"
+  className="flex-shrink-0 w-[320px] md:w-[380px] bg-white rounded-[2rem] p-3 border border-slate-100 shadow-sm hover:shadow-[0_15px_30px_rgba(37,99,235,0.1)] transition-all duration-500 group"
 >
   <Link to={`/product/${product._id}`} className="flex h-36 items-center gap-4">
     
@@ -148,7 +148,9 @@ const HorizontalProductCard = ({ category, heading }) => {
         Add to Cart
       </button>
     </div>
+    
   </Link>
+  <div className="h-1.5 w-0 group-hover:w-full bg-gradient-to-r from-primary-400 to-blue-600 transition-all duration-500 shadow-[0_-4px_10px_rgba(59,130,246,0.3)]"></div>
 </motion.div>
             ))}
       </div>

@@ -89,223 +89,149 @@ const UploadProduct = ({ onClose, fetchData }) => {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 z-[110] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4"
+        // z-index বাড়িয়ে [9999] করা হয়েছে যাতে হেডারের উপরে থাকে
+        className="fixed pt-20 inset-0 flex items-center justify-center bg-slate-900/70 backdrop-blur-md p-4 z-[9999]"
       >
         <motion.div
-          initial={{ y: 50, opacity: 0, scale: 0.95 }}
+          initial={{ y: 20, opacity: 0, scale: 0.98 }}
           animate={{ y: 0, opacity: 1, scale: 1 }}
-          exit={{ y: 50, opacity: 0, scale: 0.95 }}
-          className="bg-white w-full max-w-4xl rounded-[2.5rem] shadow-2xl flex flex-col max-h-[95vh] overflow-hidden border border-white/20"
+          exit={{ y: 20, opacity: 0, scale: 0.98 }}
+          // max-w-2xl করে সাইজ ছোট করা হয়েছে এবং height কন্ট্রোল করা হয়েছে
+          className="bg-white w-full max-w-2xl rounded-[2rem] shadow-2xl flex flex-col max-h-[90vh] overflow-hidden border border-slate-200"
         >
-          {/* --- Header --- */}
-          <div className="flex justify-between items-center px-10 py-6 border-b border-slate-100 bg-slate-50/50">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-primary-100 text-primary-600 rounded-2xl flex items-center justify-center">
-                <FaBoxOpen size={24} />
+          {/* --- Header (Reduced Padding) --- */}
+          <div className="flex justify-between items-center px-8 py-5 border-b border-slate-100 bg-slate-50/50">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-primary-100 text-primary-600 rounded-xl flex items-center justify-center">
+                <FaBoxOpen size={20} />
               </div>
               <div>
-                <h2 className="text-2xl font-black text-slate-800 tracking-tight">
-                  New Product
-                </h2>
-                <p className="text-sm text-slate-500 font-medium">Add a new item to your store</p>
+                <h2 className="text-xl font-bold text-slate-800">Add Product</h2>
+                <p className="text-xs text-slate-500 font-medium">Create a new item listing</p>
               </div>
             </div>
             <button
               onClick={onClose}
-              className="w-10 h-10 flex items-center justify-center bg-white rounded-full text-slate-400 hover:text-red-500 hover:shadow-lg transition-all border border-slate-100"
+              className="w-9 h-9 flex items-center justify-center bg-white rounded-full text-slate-400 hover:text-red-500 hover:shadow-md transition-all border border-slate-100"
             >
-              <MdClose size={24} />
+              <MdClose size={20} />
             </button>
           </div>
 
-          {/* --- Form Body --- */}
+          {/* --- Form Body (Optimized Spacing) --- */}
           <form
             onSubmit={handleSubmit}
-            className="flex-1 overflow-y-auto px-10 py-8 space-y-8 scrollbar-thin scrollbar-thumb-slate-200"
+            className="flex-1 overflow-y-auto px-8 py-6 space-y-6 scrollbar-thin scrollbar-thumb-slate-200"
           >
-            {/* Grid 1: Name & Brand */}
-            <div className="grid md:grid-cols-2 gap-8">
-              <div className="space-y-2">
-                <label className="text-sm font-bold text-slate-700 ml-1">Product Title</label>
+            <div className="grid md:grid-cols-2 gap-5">
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-slate-600 ml-1">Product Title</label>
                 <input
                   type="text"
                   name="productName"
                   value={productData.productName}
                   onChange={handleOnChange}
-                  placeholder="e.g. Wireless Bluetooth Headphones"
-                  className="w-full px-5 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl focus:bg-white focus:ring-4 focus:ring-primary-100 focus:border-primary-500 outline-none transition-all font-medium text-slate-800 shadow-sm"
+                  className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-primary-400 outline-none transition-all text-sm shadow-sm"
+                  placeholder="Product name..."
                   required
                 />
               </div>
 
-              <div className="space-y-2">
-                <label className="text-sm font-bold text-slate-700 ml-1">Brand Name</label>
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-slate-600 ml-1">Brand Name</label>
                 <input
                   type="text"
                   name="brandName"
                   value={productData.brandName}
                   onChange={handleOnChange}
-                  placeholder="e.g. Sony, Samsung, Local"
-                  className="w-full px-5 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl focus:bg-white focus:ring-4 focus:ring-primary-100 focus:border-primary-500 outline-none transition-all font-medium text-slate-800 shadow-sm"
+                  className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-primary-400 outline-none transition-all text-sm shadow-sm"
+                  placeholder="Brand..."
                   required
                 />
               </div>
             </div>
 
-            {/* Row 2: Category Selection */}
-            <div className="space-y-2">
-              <label className="text-sm font-bold text-slate-700 ml-1">Primary Category</label>
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-slate-600 ml-1">Category</label>
               <select
                 name="category"
                 value={productData.category}
                 onChange={handleOnChange}
-                className="w-full px-5 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl focus:bg-white focus:ring-4 focus:ring-primary-100 focus:border-primary-500 outline-none transition-all font-medium text-slate-700 cursor-pointer shadow-sm"
+                className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white outline-none transition-all text-sm shadow-sm cursor-pointer"
                 required
               >
-                <option value="" disabled>Select a category</option>
+                <option value="" disabled>Select Category</option>
                 {ProductCategory.map((cat, index) => (
                   <option key={index} value={cat.value}>{cat.label}</option>
                 ))}
               </select>
             </div>
 
-            {/* Row 3: Drag & Drop Gallery */}
-            <div className="space-y-3">
-              <label className="text-sm font-bold text-slate-700 ml-1">Product Media</label>
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-slate-600 ml-1">Images</label>
               <div
                 onDragOver={(e) => e.preventDefault()}
                 onDrop={handleDrop}
                 onClick={() => document.getElementById('upload-product-input').click()}
-                className={`group border-2 border-dashed rounded-[2rem] p-10 text-center transition-all cursor-pointer bg-slate-50/50
-                  ${isUploading ? 'border-primary-400 bg-primary-50' : 'border-slate-200 hover:border-primary-400 hover:bg-primary-50/30'}`}
+                className="border-2 border-dashed border-slate-200 rounded-2xl p-6 text-center hover:bg-primary-50 transition-all cursor-pointer"
               >
-                <input
-                  id="upload-product-input"
-                  type="file"
-                  className="hidden"
-                  onChange={handleUploadProductImage}
-                />
-                <div className="flex flex-col items-center gap-2">
-                  <div className={`w-16 h-16 rounded-2xl flex items-center justify-center transition-all mb-2
-                    ${isUploading ? 'bg-primary-500 text-white animate-bounce' : 'bg-white text-slate-400 group-hover:text-primary-500 shadow-sm'}`}>
-                    <FaCloudUploadAlt size={32} />
-                  </div>
-                  <p className="text-slate-600 font-black">
-                    {isUploading ? "Uploading..." : "Drop your image here or click to browse"}
-                  </p>
-                  <p className="text-xs text-slate-400 font-medium tracking-wide">High resolution images look better (PNG/JPG)</p>
+                <input id="upload-product-input" type="file" className="hidden" onChange={handleUploadProductImage} />
+                <div className="flex flex-col items-center gap-1">
+                  <FaCloudUploadAlt size={28} className="text-slate-400" />
+                  <p className="text-sm font-bold text-slate-600">Click to upload</p>
                 </div>
               </div>
 
-              {/* Preview Grid */}
               {productData.productImage.length > 0 && (
-                <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 gap-4 mt-6">
-                  <AnimatePresence>
-                    {productData.productImage.map((img, index) => (
-                      <motion.div
-                        key={index}
-                        layout
-                        initial={{ opacity: 0, scale: 0.8 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        exit={{ opacity: 0, scale: 0.8 }}
-                        className="relative aspect-square group rounded-2xl border border-slate-100 overflow-hidden shadow-sm hover:shadow-md transition-all bg-white"
-                      >
-                        <img
-                          src={img}
-                          alt="preview"
-                          className="h-full w-full object-contain p-2 cursor-pointer"
-                          onClick={() => {
-                            setFullScreenImage(img);
-                            setOpenFullScreenImage(true);
-                          }}
-                        />
-                        <button
-                          type="button"
-                          onClick={() => handleDeleteProductImage(index)}
-                          className="absolute top-2 right-2 w-8 h-8 bg-red-500 text-white rounded-xl flex items-center justify-center opacity-0 group-hover:opacity-100 shadow-lg transition-all hover:bg-red-600"
-                        >
-                          <MdDelete size={18} />
-                        </button>
-                      </motion.div>
-                    ))}
-                  </AnimatePresence>
+                <div className="flex gap-3 mt-3 overflow-x-auto pb-2">
+                  {productData.productImage.map((img, index) => (
+                    <div key={index} className="relative min-w-[80px] h-20 bg-white border border-slate-200 rounded-lg p-1">
+                      <img src={img} className="w-full h-full object-contain cursor-pointer" onClick={() => {setFullScreenImage(img); setOpenFullScreenImage(true);}} />
+                      <button onClick={() => handleDeleteProductImage(index)} className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 shadow-md hover:scale-110">
+                        <MdDelete size={14} />
+                      </button>
+                    </div>
+                  ))}
                 </div>
               )}
             </div>
 
-            {/* Grid 4: Pricing */}
-            <div className="grid md:grid-cols-2 gap-8">
-              <div className="space-y-2">
-                <label className="text-sm font-bold text-slate-700 ml-1">Market Price (৳)</label>
-                <div className="relative">
-                  <span className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 font-bold">৳</span>
-                  <input
-                    type="number"
-                    name="price"
-                    value={productData.price}
-                    onChange={handleOnChange}
-                    className="w-full pl-10 pr-5 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl focus:bg-white focus:ring-4 focus:ring-primary-100 focus:border-primary-500 outline-none transition-all font-bold text-slate-700"
-                    placeholder="0"
-                    required
-                  />
-                </div>
+            <div className="grid md:grid-cols-2 gap-5">
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-slate-600 ml-1">Price (৳)</label>
+                <input type="number" name="price" value={productData.price} onChange={handleOnChange} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none text-sm shadow-sm" required />
               </div>
-
-              <div className="space-y-2">
-                <label className="text-sm font-bold text-slate-700 ml-1">Selling Price (৳)</label>
-                <div className="relative">
-                  <span className="absolute left-5 top-1/2 -translate-y-1/2 text-primary-500 font-bold">৳</span>
-                  <input
-                    type="number"
-                    name="sellingPrice"
-                    value={productData.sellingPrice}
-                    onChange={handleOnChange}
-                    className="w-full pl-10 pr-5 py-3.5 bg-slate-50 border border-primary-200 rounded-2xl focus:bg-white focus:ring-4 focus:ring-primary-100 focus:border-primary-500 outline-none transition-all font-bold text-primary-600 shadow-sm"
-                    placeholder="0"
-                    required
-                  />
-                </div>
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-slate-600 ml-1">Selling Price (৳)</label>
+                <input type="number" name="sellingPrice" value={productData.sellingPrice} onChange={handleOnChange} className="w-full px-4 py-2.5 bg-slate-50 border border-primary-200 rounded-xl outline-none text-sm shadow-sm text-primary-600 font-bold" required />
               </div>
             </div>
 
-            {/* Row 5: Description */}
-            <div className="space-y-2 pb-4">
-              <label className="text-sm font-bold text-slate-700 ml-1">Description</label>
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-slate-600 ml-1">Description</label>
               <textarea
                 name="productDesc"
                 value={productData.productDesc}
                 onChange={handleOnChange}
-                className="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-[2rem] h-32 resize-none focus:bg-white focus:ring-4 focus:ring-primary-100 focus:border-primary-500 outline-none transition-all font-medium text-slate-700 leading-relaxed shadow-sm"
-                placeholder="Write an engaging description for your product..."
+                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl h-24 resize-none outline-none text-sm"
+                placeholder="Brief description..."
               />
             </div>
           </form>
 
-          {/* --- Footer Actions --- */}
-          <div className="flex items-center justify-end gap-4 px-10 py-7 border-t border-slate-100 bg-slate-50/80 backdrop-blur-md">
-            <button
-              onClick={onClose}
-              className="px-8 py-3.5 rounded-2xl font-bold text-slate-500 hover:bg-white hover:text-slate-800 transition-all border border-transparent hover:border-slate-200"
-            >
+          {/* --- Footer (Reduced Padding) --- */}
+          <div className="flex items-center justify-end gap-3 px-8 py-5 border-t border-slate-100 bg-slate-50/80 backdrop-blur-md">
+            <button onClick={onClose} className="px-6 py-2.5 rounded-xl text-sm font-bold text-slate-500 hover:bg-slate-200 transition-all">
               Cancel
             </button>
-            <motion.button
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              onClick={handleSubmit}
-              className="px-10 py-3.5 rounded-2xl bg-gradient-to-r from-primary-600 to-indigo-600 text-white font-black shadow-xl shadow-primary-600/20 hover:shadow-primary-600/40 transition-all"
-            >
-              Upload Product
-            </motion.button>
+            <button onClick={handleSubmit} className="px-8 py-2.5 rounded-xl bg-primary-600 text-white text-sm font-bold shadow-lg hover:bg-primary-700 transition-all">
+              Save Product
+            </button>
           </div>
         </motion.div>
 
-        {/* Image Full View */}
         {openFullScreenImage && (
-          <DisplayImage
-            imageUrl={fullScreenImage}
-            onClose={() => setOpenFullScreenImage(false)}
-          />
+          <DisplayImage imageUrl={fullScreenImage} onClose={() => setOpenFullScreenImage(false)} />
         )}
       </motion.div>
     </AnimatePresence>
