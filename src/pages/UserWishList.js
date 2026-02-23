@@ -3,9 +3,10 @@ import SummaryApi from "../common/API";
 import { useSelector } from "react-redux";
 import wishlistImg from "../assest/Images/wishlist.png";
 import { Link } from "react-router-dom";
-import { MdDelete } from "react-icons/md";
+import { MdDelete, MdOutlineFavoriteBorder } from "react-icons/md";
 import Context from "../context/Context";
 import displayBDTCurrency from "../helpers/displayCurrency";
+import Swal from "sweetalert2";
 
 const UserWishList = () => {
   const user = useSelector((state) => state?.user?.user);
@@ -18,9 +19,7 @@ const UserWishList = () => {
     const apiResponse = await fetch(`${SummaryApi.getWishList.url}`, {
       method: SummaryApi.getWishList.method,
       credentials: "include",
-      headers: {
-        "content-type": "application/json",
-      },
+      headers: { "content-type": "application/json" },
     });
     const apiResponseData = await apiResponse.json();
     if (apiResponseData.success) {
@@ -35,117 +34,140 @@ const UserWishList = () => {
   };
 
   useEffect(() => {
-    handleLoading();
+    if (user?._id) {
+      handleLoading();
+    }
   }, [user?._id]);
-
-  // console.log("WishList", wishlistData);
 
   const deleteWishlistProduct = async (e, wishlistId) => {
     e.stopPropagation();
     e.preventDefault();
-    const apiResponse = await fetch(`${SummaryApi.deletewishlistProduct.url}`, {
-      method: SummaryApi.deletewishlistProduct.method,
-      credentials: "include",
-      headers: {
-        "content-type": "application/json",
-      },
-      body: JSON.stringify({
-        wishlistId: wishlistId,
-      }),
-    });
 
-    const apiResponseData = await apiResponse.json();
-    if (apiResponseData.success) {
-      fetchWishlistData();
-      fetchAddToWishListCount();
-    }
+    Swal.fire({
+      title: "Are you sure?",
+      text: "Remove this item from wishlist?",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#ef4444",
+      cancelButtonColor: "#64748b",
+      confirmButtonText: "Yes, delete it!",
+      customClass: {
+        popup: 'rounded-[1.5rem] md:rounded-[2rem]',
+        confirmButton: 'rounded-xl px-4 md:px-6 py-2 md:py-2.5 font-bold text-sm md:text-base',
+        cancelButton: 'rounded-xl px-4 md:px-6 py-2 md:py-2.5 font-bold text-sm md:text-base'
+      }
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        const apiResponse = await fetch(`${SummaryApi.deletewishlistProduct.url}`, {
+          method: SummaryApi.deletewishlistProduct.method,
+          credentials: "include",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ wishlistId: wishlistId }),
+        });
+
+        const apiResponseData = await apiResponse.json();
+        if (apiResponseData.success) {
+          fetchWishlistData();
+          fetchAddToWishListCount();
+          
+          Swal.fire({
+            title: "Deleted!",
+            icon: "success",
+            showConfirmButton: false,
+            timer: 1200,
+            customClass: { popup: 'rounded-[1.5rem]' }
+          });
+        }
+      }
+    });
   };
 
   return (
-    <div className="w-full h-full p-2 md:p-4">
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-4">
+    <div className="w-full min-h-full p-3 sm:p-4 md:p-6 bg-slate-50/50">
+      {/* Header Section */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 md:mb-8">
         <div>
-          <h1 className="text-xl md:text-2xl font-bold text-slate-800">
-            My Wishlist
+          <h1 className="text-xl md:text-3xl font-extrabold text-slate-800 tracking-tight flex items-center gap-2">
+            My Wishlist <MdOutlineFavoriteBorder className="text-primary-500" />
           </h1>
-          <p className="text-sm text-slate-500">
-            Products you have saved for later
+          <p className="text-slate-500 text-xs md:text-sm mt-0.5 font-medium">
+            Items you've saved for later.
           </p>
         </div>
-        <div className="px-3 py-1.5 rounded-full bg-white border border-surface-200 text-sm text-slate-700">
-          Total items:{" "}
-          <span className="font-semibold text-primary-600">
+        <div className="bg-white self-start sm:self-center px-4 py-1.5 md:px-5 md:py-2 rounded-xl md:rounded-2xl shadow-sm border border-slate-100 flex items-center gap-2">
+          <span className="text-[10px] md:text-xs font-bold text-slate-400 uppercase tracking-wider">Total</span>
+          <span className="text-base md:text-lg font-black text-primary-600 leading-none">
             {wishlistData.length}
           </span>
         </div>
       </div>
 
+      {/* Empty State */}
       {wishlistData.length === 0 && !loading && (
-        <div className="bg-white rounded-2xl border border-surface-100 shadow-soft p-8 flex flex-col items-center text-center">
-          <img
-            src={wishlistImg}
-            className="w-40 h-40 object-contain mix-blend-multiply mb-4"
-            alt="Empty wishlist"
-          />
-          <p className="text-slate-600 font-medium">
-            Looks like you haven&apos;t added anything to your wishlist yet.
+        <div className="bg-white rounded-[1.5rem] md:rounded-[2.5rem] border border-slate-100 shadow-xl shadow-slate-200/40 p-8 md:p-12 flex flex-col items-center text-center max-w-lg mx-auto mt-10">
+          <div className="relative">
+             <div className="absolute inset-0 bg-primary-100 rounded-full blur-2xl opacity-30 animate-pulse"></div>
+             <img src={wishlistImg} className="w-32 h-32 md:w-48 md:h-48 object-contain relative z-10 mix-blend-multiply mb-6" alt="Empty" />
+          </div>
+          <h3 className="text-lg md:text-xl font-bold text-slate-800">Your wishlist is empty</h3>
+          <p className="text-slate-500 mt-2 text-xs md:text-sm leading-relaxed px-4">
+            Looks like you haven't found your favorites yet.
           </p>
-          <p className="text-sm text-slate-400 mt-1">
-            Explore top products and tap the heart icon to save them.
-          </p>
-          <Link to="/" className="mt-5">
-            <button className="px-6 py-2.5 rounded-xl bg-primary-500 hover:bg-primary-600 text-white font-semibold text-sm">
-              Continue Shopping
-            </button>
+          <Link to="/" className="mt-6 md:mt-8 px-6 md:px-8 py-2.5 md:py-3.5 rounded-full bg-primary-600 hover:bg-primary-700 text-white text-sm md:text-base font-bold transition-all hover:shadow-lg active:scale-95">
+            Explore Products
           </Link>
         </div>
       )}
 
-      <div className="mt-4 space-y-3 max-h-[60vh] overflow-y-auto scrollbar-thin pr-1">
+      {/* Wishlist Items List */}
+      <div className="grid gap-3 md:gap-5 max-h-[75vh] overflow-y-auto scrollbar-thin pr-1 md:pr-2">
         {loading
           ? wishlistLoadingList.map((_, idx) => (
-              <div
-                key={idx}
-                className="w-full h-24 md:h-28 bg-white rounded-2xl border border-surface-200 shadow-card flex animate-pulse"
-              >
-                <div className="w-24 md:w-28 h-full bg-surface-200 rounded-l-2xl" />
-                <div className="flex-1 p-3 space-y-2">
-                  <div className="h-4 bg-surface-200 rounded w-3/4" />
-                  <div className="h-3 bg-surface-200 rounded w-1/3" />
-                  <div className="h-4 bg-surface-200 rounded w-1/4" />
+              <div key={idx} className="w-full h-24 md:h-32 bg-white rounded-2xl md:rounded-3xl border border-slate-100 flex animate-pulse overflow-hidden">
+                <div className="w-24 md:w-32 h-full bg-slate-100" />
+                <div className="flex-1 p-3 md:p-5 space-y-2 md:space-y-3">
+                  <div className="h-4 md:h-5 bg-slate-100 rounded-lg w-3/4" />
+                  <div className="h-3 md:h-4 bg-slate-100 rounded-lg w-1/4" />
                 </div>
               </div>
             ))
           : wishlistData.map((product) => (
               <Link
                 to={`/product/${product?.productId?._id}`}
-                className="w-full bg-white rounded-2xl border border-surface-200 shadow-card flex hover:shadow-cardHover hover:border-primary-100 transition-all duration-300"
                 key={product?._id}
+                className="group w-full bg-white rounded-2xl md:rounded-3xl border border-slate-100 shadow-sm flex items-center hover:shadow-md transition-all duration-300 overflow-hidden relative"
               >
-                <div className="w-24 md:w-28 h-24 md:h-28 bg-surface-50 rounded-l-2xl flex items-center justify-center overflow-hidden">
+                {/* Product Image */}
+                <div className="w-20 sm:w-28 md:w-32 h-20 sm:h-28 md:h-32 bg-slate-50 flex items-center justify-center p-2 md:p-3 flex-shrink-0 group-hover:bg-primary-50/30 transition-colors">
                   <img
                     src={product?.productId?.productImage?.[0]}
-                    className="w-full h-full object-contain mix-blend-multiply p-2"
+                    className="w-full h-full object-contain mix-blend-multiply group-hover:scale-110 transition-transform duration-500"
                     alt={product?.productId?.productName}
                   />
                 </div>
-                <div className="flex-1 px-4 py-3 relative min-w-0">
-                  <button
-                    type="button"
-                    className="absolute right-3 bottom-3 p-2 rounded-full text-accent-coral/80 hover:bg-accent-coral hover:text-white transition-colors"
-                    onClick={(e) => deleteWishlistProduct(e, product?._id)}
-                  >
-                    <MdDelete className="text-lg" />
-                  </button>
-                  <h2 className="font-semibold text-slate-800 text-sm md:text-base text-ellipsis line-clamp-1 pr-8">
+
+                {/* Product Info */}
+                <div className="flex-1 px-3 md:px-5 py-2 md:py-4 min-w-0">
+                  <span className="hidden sm:inline-block text-[8px] md:text-[10px] font-bold text-primary-500 uppercase tracking-widest bg-primary-50 px-2 py-0.5 rounded-md mb-1">
+                    {product?.productId?.category}
+                  </span>
+                  <h2 className="font-bold text-slate-800 text-xs sm:text-sm md:text-lg truncate group-hover:text-primary-600 transition-colors">
                     {product?.productId?.productName}
                   </h2>
-                  <p className="text-xs text-slate-500 capitalize">
-                    {product?.productId?.category}
-                  </p>
-                  <p className="mt-1 font-semibold text-primary-600 text-sm md:text-base">
+                  <p className="mt-0.5 md:mt-1 font-black text-slate-800 text-sm sm:text-base md:text-xl">
                     {displayBDTCurrency(product?.productId?.sellingPrice)}
                   </p>
+                </div>
+
+                {/* Delete Button */}
+                <div className="pr-2 md:pr-6">
+                  <button
+                    type="button"
+                    className="p-2 md:p-3 rounded-lg md:rounded-2xl bg-slate-50 text-slate-400 hover:bg-rose-50 hover:text-rose-500 transition-all duration-300 active:scale-90"
+                    onClick={(e) => deleteWishlistProduct(e, product?._id)}
+                  >
+                    <MdDelete className="text-lg md:text-2xl" />
+                  </button>
                 </div>
               </Link>
             ))}

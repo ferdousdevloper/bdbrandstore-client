@@ -43,7 +43,7 @@ const RoleChangeModal = ({ isOpen, onClose, onSubmit, user }) => {
           >
             <div className="flex items-center justify-between p-6 border-b border-slate-100 bg-slate-50/50">
               <div className="flex items-center gap-3">
-                <div className="p-2 bg-blue-100 text-blue-600 rounded-lg">
+                <div className="p-2 bg-primary-100 text-primary-600 rounded-lg">
                   <FaUserShield size={20} />
                 </div>
                 <h3 className="text-xl font-bold text-slate-800">Change User Role</h3>
@@ -60,7 +60,7 @@ const RoleChangeModal = ({ isOpen, onClose, onSubmit, user }) => {
               <div className="mb-6 p-4 bg-blue-50 rounded-2xl border border-blue-100">
                 <p className="text-xs text-slate-500 font-semibold uppercase tracking-wider">Updating role for:</p>
                 <h4 className="text-lg font-bold text-slate-800 capitalize mt-1">{user?.name}</h4>
-                <p className="text-sm text-blue-600 font-medium">{user?.email}</p>
+                <p className="text-sm text-primary-600 font-medium">{user?.email}</p>
               </div>
 
               <form onSubmit={handleSubmit} className="space-y-6">
@@ -71,7 +71,7 @@ const RoleChangeModal = ({ isOpen, onClose, onSubmit, user }) => {
                   <select
                     id="role"
                     name="role"
-                    className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all cursor-pointer font-medium text-slate-700 shadow-sm"
+                    className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-all cursor-pointer font-medium text-slate-700 shadow-sm"
                     required
                     value={userRole}
                     onChange={handleRoleChange}
@@ -95,7 +95,7 @@ const RoleChangeModal = ({ isOpen, onClose, onSubmit, user }) => {
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                     type="submit"
-                    className="flex-[2] py-3 rounded-xl font-bold text-white bg-gradient-to-r from-blue-600 to-blue-500 shadow-lg shadow-blue-500/30 hover:shadow-blue-500/50 transition-all"
+                    className="flex-[2] py-3 rounded-xl font-bold text-white bg-gradient-to-r from-primary-600 to-primary-500 shadow-lg shadow-primary-500/30 hover:shadow-primary-500/50 transition-all"
                   >
                     Save Changes
                   </motion.button>

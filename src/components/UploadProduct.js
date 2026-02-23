@@ -64,13 +64,16 @@ const UploadProduct = ({ onClose, fetchData }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const res = await fetch(SummaryApi.createProduct.url, {
-        method: SummaryApi.createProduct.method,
+      // এখানে SummaryApi.createProduct এর বদলে SummaryApi.uploadProduct হবে
+      const res = await fetch(SummaryApi.uploadProduct.url, {
+        method: SummaryApi.uploadProduct.method,
         headers: { "content-type": "application/json" },
         credentials: "include",
         body: JSON.stringify(productData),
       });
+      
       const data = await res.json();
+      
       if (data.success) {
         toast.success(data.message);
         onClose();
@@ -79,6 +82,7 @@ const UploadProduct = ({ onClose, fetchData }) => {
         toast.error(data.message);
       }
     } catch (err) {
+      console.log("Error logic: ", err); // কনসোলে এরর চেক করার জন্য
       toast.error("Failed to upload product");
     }
   };

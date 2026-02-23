@@ -1,4 +1,5 @@
-import { createBrowserRouter } from "react-router-dom";
+import { createBrowserRouter, Navigate } from "react-router-dom";
+import { useSelector, useDispatch } from "react-redux";
 import App from "../App";
 import Home from "../pages/Home";
 import SignIn from "../pages/SignIn";
@@ -19,9 +20,46 @@ import VerifyOtp from "../pages/verifyOtp";
 import ResetPassword from "../pages/ResetPassword";
 import Success from "../pages/Success";
 import Cancel from "../pages/Cancel";
-import Order from "../pages/Order";
 import AdminOrders from "../pages/AdminOrders";
-import Statistics from "../pages/Statistics"; // 🔥 নতুন ইমপোর্ট
+import Statistics from "../pages/Statistics";
+import SummaryApi from "../common/API";
+import { setUserDetails } from "../store/userSlice";
+import { toast } from "react-toastify";
+
+// --- ১. লগইন থাকলে SignIn/SignUp পেজে যেতে বাধা দেওয়ার কম্পোনেন্ট ---
+const AuthRedirect = ({ children }) => {
+  const user = useSelector((state) => state?.user?.user);
+  return user ? <Navigate to="/" replace /> : children;
+};
+
+// --- ২. প্রোটেকশন এবং অটো-লগআউট লজিক ---
+const ProtectedRoute = ({ children, allowedRole }) => {
+  const user = useSelector((state) => state?.user?.user);
+  const dispatch = useDispatch();
+
+  // ইউজার যদি লগইন না থাকে
+  if (!user) {
+    return <Navigate to="/signin" replace />;
+  }
+
+  // যদি ইউজার ভুল রোলে ঢোকার চেষ্টা করে (যেমন: ইউজার অ্যাডমিন প্যানেলে)
+  if (allowedRole && user.role !== allowedRole) {
+    // অটো লগআউট ফাংশন
+    const autoLogout = async () => {
+      await fetch(SummaryApi.userLogout.url, {
+        method: SummaryApi.userLogout.method,
+        credentials: "include",
+      });
+      dispatch(setUserDetails(null));
+      toast.error("Unauthorized access! Logging out...");
+    };
+    
+    autoLogout();
+    return <Navigate to="/signin" replace />;
+  }
+
+  return children;
+};
 
 const router = createBrowserRouter([
   {
@@ -34,11 +72,11 @@ const router = createBrowserRouter([
       },
       {
         path: "signin",
-        element: <SignIn />,
+        element: <AuthRedirect> <SignIn /> </AuthRedirect>,
       },
       {
         path: "signup",
-        element: <SignUp />,
+        element: <AuthRedirect> <SignUp /> </AuthRedirect>,
       },
       {
         path: "forgot-password",
@@ -60,7 +98,6 @@ const router = createBrowserRouter([
         path: "product/:id",
         element: <ProductDetail />,
       },
-
       {
         path: "search",
         element: <SearchProduct />,
@@ -73,11 +110,16 @@ const router = createBrowserRouter([
         path: "cancel",
         element: <Cancel />,
       },
+
+      // --- অ্যাডমিন প্যানেল প্রোটেক্টেড ---
       {
         path: "admin-panel",
-        element: <AdminPanel />,
+        element: (
+          <ProtectedRoute allowedRole="ADMIN">
+            <AdminPanel />
+          </ProtectedRoute>
+        ),
         children: [
-          // 🔥 অ্যাডমিন ড্যাশবোর্ড লোড হলেই যাতে স্ট্যাটিস্টিক্স দেখা যায়, চাইলে path: "" হিসেবেও দিতে পারেন
           {
             path: "statistics",
             element: <Statistics />,
@@ -96,9 +138,15 @@ const router = createBrowserRouter([
           },
         ],
       },
+
+      // --- ইউজার প্যানেল প্রোটেক্টেড ---
       {
         path: "user-panel",
-        element: <UserPanel />,
+        element: (
+          <ProtectedRoute allowedRole="USER">
+            <UserPanel />
+          </ProtectedRoute>
+        ),
         children: [
           {
             path: "my-account",

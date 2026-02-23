@@ -1,24 +1,18 @@
 import React, { useEffect, useState } from 'react';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
-import { FaMoneyBillWave, FaUsers, FaBox, FaShoppingBag, FaArrowUp, FaChartBar } from 'react-icons/fa';
+import { 
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, 
+  PieChart, Pie, Cell, Legend, RadarChart, PolarGrid, 
+  PolarAngleAxis, Radar 
+} from 'recharts';
+import { 
+  FaMoneyBillWave, FaUsers, FaBox, FaShoppingBag, FaChartBar, 
+  FaExclamationTriangle, FaTruckLoading, FaWarehouse, FaChartPie, FaCubes, FaGlobe
+} from 'react-icons/fa';
 import SummaryApi from '../common/API';
 import { motion } from 'framer-motion';
 
-// আপনার থিমের মেইন কালার প্যালেট
-const THEME_COLORS = ['#14b8a6', '#0d9488', '#0f766e', '#f43f5e', '#f59e0b'];
-
-// কাস্টম বার শেপ (Rounded Top)
-const CustomBarShape = (props) => {
-    const { fill, x, y, width, height } = props;
-    if (height <= 0) return null;
-    return (
-        <path
-            d={`M${x},${y + height} L${x},${y + 12} Q${x},${y} ${x + 12},${y} L${x + width - 12},${y} Q${x + width},${y} ${x + width},${y + 12} L${x + width},${y + height} Z`}
-            stroke="none"
-            fill={fill}
-        />
-    );
-};
+// আপনার থিম কালার প্যালেট (Tailwind Config অনুযায়ী)
+const THEME_COLORS = ['#14b8a6', '#0f766e', '#134e4a', '#f43f5e', '#f59e0b'];
 
 const Statistics = () => {
     const [stats, setStats] = useState(null);
@@ -47,153 +41,175 @@ const Statistics = () => {
 
     useEffect(() => { fetchStats(); }, []);
 
+    const orderStatusData = [
+        { subject: 'Delivered', A: 120 },
+        { subject: 'Pending', A: 98 },
+        { subject: 'Canceled', A: 40 },
+        { subject: 'Shipped', A: 85 },
+        { subject: 'Confirmed', A: 110 },
+    ];
+
     if (loading) return (
-        <div className="flex items-center justify-center min-h-[400px]">
-            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary-600"></div>
+        <div className="flex flex-col items-center justify-center min-h-screen bg-surface-50">
+            <div className="w-12 h-12 border-4 border-primary-500 border-t-transparent rounded-full animate-spin"></div>
+            <p className="mt-4 text-primary-800 font-bold text-[10px] uppercase tracking-[0.3em]">Loading Engine</p>
         </div>
     );
 
     return (
-        <div className="p-4 md:p-6 lg:p-10 space-y-10 bg-surface-50 min-h-screen font-sans">
+        <div className="p-4 md:p-8 lg:p-10 space-y-10 bg-surface-50 min-h-screen font-sans">
             
-            {/* --- Header Section --- */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
-                <div className="space-y-1">
-                    <h2 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight">Executive Dashboard</h2>
-                    <p className="text-slate-500 text-xs md:text-sm font-medium">Business intelligence powered by your primary theme</p>
+            {/* Header Section */}
+            <div className="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center justify-between gap-6">
+                <div>
+                    <h2 className="text-3xl md:text-4xl font-black text-primary-900 tracking-tighter uppercase">
+                        Core <span className="text-primary-500 font-normal">Intelligence</span>
+                    </h2>
+                    <p className="text-surface-300 text-sm font-semibold flex items-center gap-2 mt-1">
+                       <FaGlobe className="text-primary-400"/> Monitoring global store activity and stock flow.
+                    </p>
                 </div>
-                <div className="flex items-center self-start sm:self-center gap-3 bg-white px-4 py-2 rounded-2xl border border-surface-200 shadow-soft">
-                    <span className="relative flex h-3 w-3">
-                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary-400 opacity-75"></span>
-                        <span className="relative inline-flex rounded-full h-3 w-3 bg-primary-500"></span>
-                    </span>
-                    <span className="text-[10px] font-bold text-slate-600 uppercase tracking-widest">Live System</span>
+                <div className="flex items-center gap-4 bg-white px-6 py-3 rounded-2xl shadow-soft border border-surface-100">
+                    <div className="w-2 h-2 rounded-full bg-primary-500 animate-pulse"></div>
+                    <span className="text-xs font-black text-primary-900 uppercase tracking-widest">Live System</span>
                 </div>
             </div>
 
-            {/* --- Top Stat Cards --- */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
-                <StatCard title="Total Revenue" value={`৳${stats?.counts.revenue?.toLocaleString()}`} icon={<FaMoneyBillWave/>} color="from-primary-600 to-primary-400" trend="+12.5%" />
-                <StatCard title="Total Orders" value={stats?.counts.orders} icon={<FaShoppingBag/>} color="from-slate-800 to-slate-600" trend="+8.2%" />
-                <StatCard title="Total Products" value={stats?.counts.products} icon={<FaBox/>} color="from-primary-700 to-primary-500" trend="+3.1%" />
-                <StatCard title="Total Customers" value={stats?.counts.users} icon={<FaUsers/>} color="from-accent-coral to-red-400" trend="+5.9%" />
+            {/* Stat Cards - Gradient Styled */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 max-w-7xl mx-auto">
+                <StatCard title="Total Revenue" value={`৳${stats?.counts.revenue?.toLocaleString()}`} icon={<FaMoneyBillWave/>} gradient="from-primary-900 to-primary-700" />
+                <StatCard title="Total Orders" value={stats?.counts.orders} icon={<FaShoppingBag/>} gradient="from-primary-700 to-primary-500" />
+                <StatCard title="Store Products" value={stats?.counts.products} icon={<FaBox/>} gradient="from-primary-600 to-primary-400" />
+                <StatCard title="Critical Stock" value="14" icon={<FaExclamationTriangle/>} gradient="from-accent-coral to-rose-700" />
             </div>
 
-            {/* --- Charts Grid --- */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 max-w-7xl mx-auto">
                 
-                {/* Revenue Bar Chart (Using Primary Gradient) */}
-                <div className="lg:col-span-2 bg-gradient-to-br from-primary-900 via-primary-800 to-slate-900 p-6 md:p-10 rounded-3xl md:rounded-[3rem] shadow-cardHover relative overflow-hidden border border-primary-700/30">
-                    <div className="absolute -top-24 -right-24 w-80 h-80 bg-primary-500/10 blur-[100px] rounded-full"></div>
-                    
-                    <div className="flex items-center justify-between mb-10 relative z-10">
+                {/* 1. Revenue Velocity - Deep Gradient Bar Chart */}
+                <div className="lg:col-span-2 bg-gradient-to-br from-primary-900 via-primary-800 to-primary-900 p-8 rounded-[2.5rem] shadow-2xl relative overflow-hidden border border-primary-800">
+                    <div className="absolute top-0 right-0 w-64 h-64 bg-primary-400/10 blur-[100px] rounded-full"></div>
+                    <div className="mb-10 relative z-10 flex items-center justify-between">
                         <div className="flex items-center gap-4">
-                            <div className="p-3 bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 text-primary-300">
+                            <div className="p-3 bg-white/10 rounded-2xl text-primary-300">
                                 <FaChartBar size={24}/>
                             </div>
                             <div>
-                                <h3 className="font-bold text-white text-xl tracking-tight">Revenue Breakdown</h3>
-                                <p className="text-primary-200/50 text-[10px] font-bold uppercase tracking-[0.2em]">Data Insights</p>
+                                <h3 className="font-bold text-white text-xl">Revenue Velocity</h3>
+                                <p className="text-primary-300/60 text-xs">Dynamic performance analytics</p>
                             </div>
                         </div>
                     </div>
-
-                    {/* Chart Container - Margins fixed for responsiveness */}
-                    <div className="h-[300px] md:h-[400px] w-full relative z-10">
+                    <div className="h-[350px] w-full relative z-10">
                         <ResponsiveContainer width="100%" height="100%">
-                            <BarChart data={stats?.salesData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                            <BarChart data={stats?.salesData}>
                                 <CartesianGrid strokeDasharray="0" vertical={false} stroke="rgba(255,255,255,0.05)" />
-                                <XAxis 
-                                    dataKey="name" 
-                                    axisLine={false} 
-                                    tickLine={false} 
-                                    tick={{fontSize: 11, fontWeight: 600, fill: 'rgba(255,255,255,0.4)'}} 
-                                    dy={10}
-                                />
-                                <YAxis 
-                                    axisLine={false} 
-                                    tickLine={false} 
-                                    tick={{fontSize: 11, fontWeight: 600, fill: 'rgba(255,255,255,0.4)'}} 
-                                />
-                                <Tooltip 
-                                    content={<CustomTooltip />} 
-                                    cursor={{fill: 'rgba(255,255,255,0.05)', radius: 15}} 
-                                />
-                                <Bar 
-                                    dataKey="sales" 
-                                    shape={<CustomBarShape />}
-                                    fill="#2dd4bf" 
-                                    animationDuration={1500}
-                                />
+                                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fontSize: 10, fill: 'rgba(255,255,255,0.4)', fontWeight: 700}} dy={10} />
+                                <YAxis axisLine={false} tickLine={false} tick={{fontSize: 10, fill: 'rgba(255,255,255,0.4)', fontWeight: 700}} />
+                                <Tooltip content={<CustomTooltipDark />} cursor={{fill: 'rgba(255,255,255,0.03)'}} />
+                                <Bar dataKey="sales" fill="#5eead4" radius={[6, 6, 0, 0]} />
+                            </BarChart>
+                        </ResponsiveContainer>
+                    </div>
+                </div>
+                {/* 4. Stock Balance - Gradient Donut */}
+                <div className="bg-gradient-to-br from-primary-500 to-primary-200 p-8 rounded-[2.5rem] shadow-soft border border-white flex flex-col">
+                    <div className="flex items-center gap-3 mb-8">
+                        <div className="p-3 bg-white/10  rounded-2xl text-primary-900 shadow-card">
+                            <FaWarehouse size={22}/>
+                        </div>
+                        <h3 className="font-bold text-primary-900 text-lg tracking-tight">Stock Balance</h3>
+                    </div>
+                    <div className="h-[280px] w-full">
+                        <ResponsiveContainer width="100%" height="100%">
+                            <PieChart>
+                                <Pie data={stats?.categoryData} innerRadius={75} outerRadius={95} paddingAngle={10} dataKey="value" stroke="none">
+                                    {stats?.categoryData?.map((_, index) => (
+                                        <Cell key={index} fill={THEME_COLORS[index % THEME_COLORS.length]} />
+                                    ))}
+                                </Pie>
+                                <Tooltip />
+                                <Legend iconType="circle" wrapperStyle={{paddingTop: '20px', fontSize: '11px', fontWeight: '900', color: '#134e4a'}} />
+                            </PieChart>
+                        </ResponsiveContainer>
+                    </div>
+                </div>
+
+                {/* 2. Logistics Audit - Primary Light Theme */}
+                <div className="bg-gradient-to-br from-primary-500 via-primary-900 to-primary-900 p-8 rounded-[2.5rem] shadow-soft border border-surface-100 flex flex-col items-center">
+                    <div className="self-start flex items-center gap-3 mb-8">
+                        <div className="p-3 bg-white/10 rounded-2xl text-primary-200">
+                            <FaTruckLoading size={22}/>
+                        </div>
+                        <h3 className="font-bold text-white text-lg tracking-tight">Logistics Audit</h3>
+                    </div>
+                    <div className="h-[300px] w-full">
+                        <ResponsiveContainer width="100%" height="100%">
+                            <RadarChart cx="50%" cy="50%" outerRadius="80%" data={orderStatusData}>
+                                <PolarGrid stroke="#e2e8f0" />
+                                <PolarAngleAxis dataKey="subject" tick={{fontSize: 10, fontWeight: 800, fill: '#94a3b8'}} />
+                                <Radar name="Orders" dataKey="A" stroke="#14b8a6" fill="#14b8a6" fillOpacity={0.5} />
+                            </RadarChart>
+                        </ResponsiveContainer>
+                    </div>
+                </div>
+
+                {/* 3. Revenue by Category - Gradient Bar Section */}
+                <div className="lg:col-span-2 bg-gradient-to-br from-primary-500 via-primary-900 to-primary-900 p-8 rounded-[2.5rem] shadow-soft border border-surface-100 relative overflow-hidden">
+                    <div className="mb-10 flex items-center gap-4">
+                        <div className="p-3 bg-white-10 rounded-2xl text-primary-100 shadow-lg">
+                            <FaCubes size={22}/>
+                        </div>
+                        <div>
+                            <h3 className="font-black text-primary-900 text-xl tracking-tight">Category Distribution</h3>
+                            <p className="text-surface-300 text-xs font-bold uppercase tracking-widest">Market segment analysis</p>
+                        </div>
+                    </div>
+                    <div className="h-[320px] w-full">
+                        <ResponsiveContainer width="100%" height="100%">
+                            <BarChart layout="vertical" data={stats?.categoryData} margin={{ left: 20 }}>
+                                <XAxis type="number" hide />
+                                <YAxis dataKey="name" type="category" axisLine={false} tickLine={false} tick={{fill: '#99f6e4', fontSize: 12, fontWeight: '900'}} />
+                                <Tooltip cursor={{fill: '#134e4a'}} contentStyle={{borderRadius: '16px', border: 'none', boxShadow: '0 20px 25px -5px rgb(0 0 0 / 0.1)'}} />
+                                <Bar dataKey="value" fill="#99f6e4" radius={[0, 12, 12, 0]} barSize={24} />
                             </BarChart>
                         </ResponsiveContainer>
                     </div>
                 </div>
 
-                {/* Pie Chart Card (Surface & White) */}
-                <div className="bg-white p-8 rounded-[2.5rem] md:rounded-[3.5rem] border border-surface-200 shadow-soft flex flex-col items-center">
-                    <div className="w-full flex justify-between items-center mb-8 px-2">
-                        <h3 className="font-bold text-slate-800 text-lg tracking-tight">Inventory Distribution</h3>
-                        <div className="h-2 w-2 rounded-full bg-primary-500"></div>
-                    </div>
-                    
-                    <div className="h-72 w-full">
-                        <ResponsiveContainer width="100%" height="100%">
-                            <PieChart>
-                                <Pie 
-                                    data={stats?.categoryData} 
-                                    innerRadius="60%" 
-                                    outerRadius="80%" 
-                                    paddingAngle={10} 
-                                    dataKey="value"
-                                >
-                                    {stats?.categoryData?.map((_, index) => (
-                                        <Cell key={index} fill={THEME_COLORS[index % THEME_COLORS.length]} strokeWidth={0} />
-                                    ))}
-                                </Pie>
-                                <Tooltip />
-                                <Legend verticalAlign="bottom" height={36} iconType="circle" wrapperStyle={{paddingTop: '20px', fontSize: '12px', fontWeight: 'bold'}} />
-                            </PieChart>
-                        </ResponsiveContainer>
-                    </div>
-                </div>
+                
+
             </div>
         </div>
     );
 };
 
-// --- Helper Components ---
-
-const CustomTooltip = ({ active, payload, label }) => {
+// Tooltip Component
+const CustomTooltipDark = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
         return (
-            <div className="bg-slate-900/90 backdrop-blur-xl text-white p-5 rounded-2xl shadow-2xl border border-white/10">
-                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-primary-400 mb-2">{label}</p>
-                <p className="text-xl font-black tracking-tight">৳{payload[0].value.toLocaleString()}</p>
+            <div className="bg-primary-900 border border-white/10 p-4 rounded-2xl shadow-2xl">
+                <p className="text-[10px] font-black text-primary-300 uppercase mb-1 tracking-widest">{label}</p>
+                <p className="text-xl font-black text-white">৳{payload[0].value.toLocaleString()}</p>
             </div>
         );
     }
     return null;
 };
 
-const StatCard = ({ title, value, icon, color, trend }) => (
+// StatCard Component
+const StatCard = ({ title, value, icon, gradient }) => (
     <motion.div 
-        whileHover={{ y: -5, boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.1)" }}
-        className="bg-white p-7 rounded-3xl border border-surface-200 shadow-card hover:border-primary-100 transition-all relative overflow-hidden group"
+        whileHover={{ y: -8, scale: 1.02 }} 
+        className={`bg-gradient-to-br ${gradient} p-7 rounded-[2.2rem] shadow-xl relative overflow-hidden group`}
     >
-        <div className={`absolute -right-4 -top-4 w-20 h-20 bg-gradient-to-br ${color} opacity-[0.03] rounded-full group-hover:scale-150 transition-transform duration-700`}></div>
-        <div className="flex justify-between items-start mb-6 relative z-10">
-            <div className={`w-14 h-14 bg-gradient-to-br ${color} text-white rounded-2xl flex items-center justify-center text-2xl shadow-lg`}>
+        <div className="absolute -right-4 -top-4 w-24 h-24 bg-white/10 rounded-full blur-2xl group-hover:bg-white/20 transition-all"></div>
+        <div className="flex justify-between items-center mb-6">
+            <div className="w-14 h-14 bg-white/20 backdrop-blur-md text-white rounded-2xl flex items-center justify-center text-2xl border border-white/20 shadow-inner">
                 {icon}
             </div>
-            <div className="bg-primary-50 text-primary-700 text-[10px] font-black px-2.5 py-1.5 rounded-lg border border-primary-100">
-                <FaArrowUp className="inline mr-1" size={8}/> {trend}
-            </div>
         </div>
-        <div className="relative z-10">
-            <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-1">{title}</p>
-            <h4 className="text-2xl font-black text-slate-900 tracking-tighter">{value}</h4>
-        </div>
+        <p className="text-[11px] font-bold text-white/70 uppercase tracking-[0.2em] mb-1">{title}</p>
+        <h4 className="text-3xl font-black text-white tracking-tighter">{value}</h4>
     </motion.div>
 );
 

@@ -56,8 +56,7 @@ const Header = () => {
   }, [menuDisplay]);
 
   return (
-    
-<header className="h-16 bg-white/95 backdrop-blur-md border-b border-slate-100 fixed w-full z-40 shadow-sm">
+    <header className="h-16 bg-white/95 backdrop-blur-md border-b border-slate-100 fixed w-full z-40 shadow-sm">
       <div className="h-full container mx-auto flex items-center px-4 md:px-6 justify-between gap-4">
         
         {/* --- Logo Section --- */}
@@ -87,9 +86,10 @@ const Header = () => {
           </div>
         </div>
 
-        {/* --- User Actions --- */}
+        {/* --- Action Buttons --- */}
         <div className="flex items-center gap-2 md:gap-4">
           
+          {/* User Profile Menu */}
           {user?._id && (
             <div className="relative" ref={menuRef}>
               <button
@@ -141,8 +141,8 @@ const Header = () => {
             </div>
           )}
 
-          {/* Wishlist */}
-          {user?._id && (
+          {/* Wishlist Icon - Hidden only for ADMIN */}
+          {user?.role !== ROLE.ADMIN && (
             <Link
               to="/user-panel/wishlist"
               className="relative p-2.5 rounded-xl text-slate-600 hover:bg-rose-50 hover:text-rose-500 transition-all active:scale-90"
@@ -156,8 +156,8 @@ const Header = () => {
             </Link>
           )}
 
-          {/* Cart */}
-          {user?._id && (
+          {/* Cart Icon - Hidden only for ADMIN */}
+          {user?.role !== ROLE.ADMIN && (
             <Link
               to="/user-panel/cart"
               className="relative p-2.5 rounded-xl text-slate-600 hover:bg-primary-50 hover:text-primary-600 transition-all active:scale-90"
@@ -171,7 +171,7 @@ const Header = () => {
             </Link>
           )}
 
-          {/* Auth Button */}
+          {/* Login/Logout Button */}
           {user?._id ? (
             <button
               className="hidden sm:block px-5 py-2.5 rounded-xl text-xs font-black text-slate-700 bg-slate-100 hover:bg-slate-200 transition-all active:scale-95 uppercase tracking-wider"
